@@ -10,7 +10,7 @@ Prereq for T0V.2 onward: local Supabase stack (`supabase start` from repo root; 
 
 ---
 
-### [ ] T0V.1 Remove Fly artifacts and static serving · Complexity: S
+### [x] T0V.1 Remove Fly artifacts and static serving · Complexity: S
 Files: Dockerfile (delete), .dockerignore (delete), fly.toml (delete), backend/passage/main.py, backend/passage/config.py, backend/tests/test_static.py (delete), .env.example
 Contract: specs/deployment.md (Shape), specs/api-skeleton.md (Static serving: none)
 Do:
@@ -21,6 +21,7 @@ Accept:
 - `grep -ri "static_dir\|fly.toml\|Dockerfile" backend/ .env.example` finds nothing (README still mentions them; T0V.6 rewrites it)
 - /health and /api/me behavior unchanged
 Verify: cd backend && uv run pytest -q && uv run flake8 passage
+Note: left `database_path`/`Path` on Settings untouched here since T0V.2 owns that swap; only `static_dir` came out. No surprises.
 
 ### [ ] T0V.2 Postgres settings + db module + first migration · Complexity: M
 Files: backend/passage/config.py, backend/passage/db/__init__.py, backend/pyproject.toml (add psycopg), supabase/config.toml, supabase/migrations/<ts>_init_app_meta.sql, backend/tests/test_db.py, .env.example

@@ -9,7 +9,6 @@ class Settings(BaseSettings):
 
     auth_token: str
     database_path: Path = Path("./data/passage.db")
-    static_dir: Path | None = None
 
 
 @lru_cache
