@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>After the Finish Line · A Comparison of Five Sailing Performance Apps</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,0..100;1,9..144,300..900,0..100&family=Hanken+Grotesk:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:ital,wght@0,300..700;1,300..700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0F1B2D;
+    --navy-deep: #050B16;
+    --cream: #F5EFE0;
+    --cream-warm: #EDE4CE;
+    --parchment: #FAF5E8;
+    --brass: #B8923C;
+    --brass-bright: #D4AC51;
+    --signal: #C8442C;
+    --rule: #D9CFB6;
+    --rule-dark: #2A3142;
+    --ink: #1A2436;
+    --ink-soft: #4A5468;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Hanken Grotesk', sans-serif;
+    background: var(--parchment);
+    color: var(--ink);
+    line-height: 1.55;
+    font-size: 16px;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Background paper texture via subtle noise */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(rgba(15,27,45,0.025) 1px, transparent 1px),
+      radial-gradient(rgba(15,27,45,0.015) 1px, transparent 1px);
+    background-size: 3px 3px, 7px 7px;
+    background-position: 0 0, 1px 1px;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 32px; position: relative; z-index: 2; }
+
+  /* ============ HERO ============ */
+  .hero {
+    background: var(--navy);
+    color: var(--cream);
+    padding: 80px 0 100px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: 0; height: 3px;
+    background: linear-gradient(90deg, transparent, var(--brass) 20%, var(--brass) 80%, transparent);
+  }
+  /* Decorative compass lines */
+  .hero-deco {
+    position: absolute;
+    right: -120px; top: 50%;
+    transform: translateY(-50%);
+    width: 480px; height: 480px;
+    opacity: 0.18;
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--brass-bright);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    width: 32px; height: 1px;
+    background: var(--brass-bright);
+  }
+  .hero h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-variation-settings: 'SOFT' 40, 'opsz' 144;
+    font-size: clamp(48px, 7vw, 92px);
+    line-height: 0.98;
+    letter-spacing: -0.02em;
+    margin-bottom: 32px;
+    max-width: 850px;
+  }
+  .hero h1 em {
+    font-style: italic;
+    font-weight: 300;
+    color: var(--brass-bright);
+    font-variation-settings: 'SOFT' 100, 'opsz' 144;
+  }
+  .hero-sub {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 20px;
+    line-height: 1.5;
+    color: var(--cream);
+    opacity: 0.85;
+    max-width: 620px;
+    margin-bottom: 48px;
+  }
+  .hero-meta {
+    display: flex;
+    gap: 48px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--cream);
+    opacity: 0.7;
+    padding-top: 32px;
+    border-top: 1px solid rgba(245,239,224,0.15);
+    max-width: 620px;
+  }
+  .hero-meta strong {
+    display: block;
+    font-weight: 700;
+    color: var(--brass-bright);
+    margin-top: 6px;
+    font-size: 13px;
+    letter-spacing: 0.12em;
+  }
+
+  /* ============ SECTION BASICS ============ */
+  section { padding: 80px 0; }
+  .section-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--brass);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-eyebrow::before {
+    content: ''; width: 24px; height: 1px; background: var(--brass);
+  }
+  .section-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-variation-settings: 'SOFT' 50;
+    font-size: clamp(36px, 4.5vw, 56px);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    margin-bottom: 24px;
+    max-width: 800px;
+  }
+  .section-title em {
+    font-style: italic;
+    color: var(--brass);
+  }
+  .section-lede {
+    font-family: 'Fraunces', serif;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    max-width: 700px;
+    margin-bottom: 48px;
+  }
+
+  /* ============ QUICK SUMMARY CARDS ============ */
+  .summary { background: var(--cream); }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+  .sum-card {
+    background: var(--cream);
+    padding: 28px 24px;
+    position: relative;
+    transition: background 0.2s ease;
+  }
+  .sum-card:hover { background: var(--parchment); }
+  .sum-mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--brass);
+    margin-bottom: 12px;
+  }
+  .sum-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 24px;
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+  .sum-tagline {
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .sum-flag {
+    position: absolute;
+    top: 24px; right: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    padding: 4px 8px;
+    background: var(--navy);
+    color: var(--cream);
+    border-radius: 2px;
+  }
+  .sum-flag.free { background: var(--brass); color: var(--navy); }
+  .sum-flag.paid { background: var(--signal); color: var(--cream); }
+
+  /* ============ MATRIX TABLE ============ */
+  .matrix-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--rule);
+    background: var(--cream);
+    margin-top: 16px;
+  }
+  table.matrix {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    min-width: 880px;
+  }
+  table.matrix th,
+  table.matrix td {
+    padding: 16px 18px;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--rule);
+  }
+  table.matrix thead th {
+    background: var(--navy);
+    color: var(--cream);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 18px;
+    border-bottom: none;
+  }
+  table.matrix tbody th {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 18px;
+    background: var(--parchment);
+    color: var(--navy);
+    width: 160px;
+    border-right: 1px solid var(--rule);
+  }
+  table.matrix tbody th small {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--brass);
+    font-weight: 400;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  table.matrix td { color: var(--ink); }
+  table.matrix tr:last-child th,
+  table.matrix tr:last-child td { border-bottom: none; }
+  .tick { color: var(--brass); font-weight: 700; }
+  .cross { color: var(--signal); opacity: 0.7; font-weight: 700; }
+  .partial { color: var(--ink-soft); font-style: italic; }
+
+  /* ============ APP DEEP DIVE ============ */
+  .apps { background: var(--parchment); }
+  .app-block {
+    border-top: 1px solid var(--rule);
+    padding: 64px 0;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 56px;
+  }
+  .app-block:first-of-type { border-top: 1px solid var(--navy); border-top-width: 2px; }
+  .app-block:last-of-type { padding-bottom: 80px; }
+  .app-side {
+    position: sticky;
+    top: 32px;
+    align-self: start;
+  }
+  .app-numeral {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-variation-settings: 'SOFT' 100;
+    font-size: 96px;
+    line-height: 0.8;
+    color: var(--brass);
+    font-style: italic;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+  .app-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 38px;
+    letter-spacing: -0.015em;
+    line-height: 1;
+    margin-bottom: 20px;
+    color: var(--navy);
+  }
+  .app-mark {
+    display: block;
+    margin-bottom: 24px;
+    width: 100%; max-width: 220px;
+    aspect-ratio: 1;
+  }
+  .app-tagline {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 18px;
+    line-height: 1.4;
+    color: var(--ink-soft);
+    margin-bottom: 24px;
+    max-width: 240px;
+  }
+  .app-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--ink-soft);
+    border-top: 1px solid var(--rule);
+    padding-top: 16px;
+  }
+  .app-meta div { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; }
+  .app-meta span:first-child { color: var(--brass); letter-spacing: 0.1em; text-transform: uppercase; font-size: 10px; }
+  .app-meta span:last-child { text-align: right; color: var(--navy); font-weight: 500; }
+  .app-link {
+    display: inline-block;
+    margin-top: 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--navy);
+    border-bottom: 1px solid var(--brass);
+    padding-bottom: 3px;
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .app-link:hover { color: var(--signal); }
+  .app-link::after { content: ' →'; }
+  .app-screenshot-link {
+    margin-top: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-soft);
+    display: block;
+  }
+  .app-screenshot-link a { color: var(--ink-soft); text-decoration: none; border-bottom: 1px dotted var(--ink-soft); }
+  .app-screenshot-link a:hover { color: var(--signal); border-color: var(--signal); }
+
+  .app-body { padding-top: 20px; }
+  .app-intro {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 300;
+    line-height: 1.55;
+    color: var(--ink);
+    margin-bottom: 36px;
+    border-left: 2px solid var(--brass);
+    padding-left: 20px;
+  }
+  .feature-block { margin-bottom: 32px; }
+  .feature-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--brass);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .feature-label::before {
+    content: '';
+    width: 8px; height: 8px;
+    border: 1.5px solid var(--brass);
+    border-radius: 50%;
+  }
+  .feature-block ul { list-style: none; }
+  .feature-block li {
+    padding: 9px 0 9px 22px;
+    border-bottom: 1px dashed var(--rule);
+    position: relative;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .feature-block li:last-child { border-bottom: none; }
+  .feature-block li::before {
+    content: '–';
+    position: absolute;
+    left: 0;
+    color: var(--brass);
+    font-weight: 700;
+  }
+  .verdict {
+    background: var(--cream-warm);
+    padding: 24px 28px;
+    margin-top: 28px;
+    border-left: 3px solid var(--navy);
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+  .verdict strong {
+    display: block;
+    font-style: normal;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--brass);
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  /* ============ RECOMMENDATION ============ */
+  .rec {
+    background: var(--navy);
+    color: var(--cream);
+    padding: 96px 0;
+    position: relative;
+  }
+  .rec .section-eyebrow { color: var(--brass-bright); }
+  .rec .section-eyebrow::before { background: var(--brass-bright); }
+  .rec .section-title { color: var(--cream); }
+  .rec .section-title em { color: var(--brass-bright); }
+  .rec .section-lede { color: var(--cream); opacity: 0.75; }
+
+  .scenarios {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-top: 48px;
+  }
+  .scenario {
+    background: rgba(245,239,224,0.05);
+    border: 1px solid rgba(184,146,60,0.3);
+    padding: 28px;
+    position: relative;
+  }
+  .scenario-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--brass-bright);
+    margin-bottom: 14px;
+  }
+  .scenario-q {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 22px;
+    line-height: 1.3;
+    color: var(--cream);
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(245,239,224,0.15);
+  }
+  .scenario-a {
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--cream);
+    opacity: 0.85;
+  }
+  .scenario-pick {
+    display: inline-block;
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 18px;
+    color: var(--brass-bright);
+    margin-bottom: 8px;
+  }
+
+  /* ============ FOOTER ============ */
+  footer {
+    background: var(--navy-deep);
+    color: var(--cream);
+    padding: 48px 0 36px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-align: center;
+    opacity: 0.6;
+  }
+  footer::before {
+    content: '';
+    display: block;
+    width: 60px; height: 1px;
+    background: var(--brass);
+    margin: 0 auto 32px;
+  }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 768px) {
+    section { padding: 56px 0; }
+    .hero { padding: 56px 0 72px; }
+    .container { padding: 0 20px; }
+    .app-block {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    .app-side { position: static; }
+    .app-numeral { font-size: 64px; }
+    .app-name { font-size: 30px; }
+    .hero-meta { flex-direction: column; gap: 16px; }
+    table.matrix th, table.matrix td { padding: 12px; font-size: 12.5px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============== HERO ============== -->
+<div class="hero">
+  <svg class="hero-deco" viewBox="0 0 480 480" fill="none">
+    <circle cx="240" cy="240" r="200" stroke="#C8A859" stroke-width="0.5"/>
+    <circle cx="240" cy="240" r="150" stroke="#C8A859" stroke-width="0.5"/>
+    <circle cx="240" cy="240" r="100" stroke="#C8A859" stroke-width="0.5"/>
+    <line x1="40" y1="240" x2="440" y2="240" stroke="#C8A859" stroke-width="0.5"/>
+    <line x1="240" y1="40" x2="240" y2="440" stroke="#C8A859" stroke-width="0.5"/>
+    <line x1="98" y1="98" x2="382" y2="382" stroke="#C8A859" stroke-width="0.3"/>
+    <line x1="382" y1="98" x2="98" y2="382" stroke="#C8A859" stroke-width="0.3"/>
+    <polygon points="240,40 248,240 240,260 232,240" fill="#D4AC51"/>
+    <polygon points="240,440 232,240 240,220 248,240" fill="#C8A859" opacity="0.6"/>
+    <text x="240" y="32" text-anchor="middle" fill="#D4AC51" font-family="JetBrains Mono" font-size="14" font-weight="600">N</text>
+    <text x="240" y="460" text-anchor="middle" fill="#C8A859" font-family="JetBrains Mono" font-size="12">S</text>
+    <text x="32" y="245" text-anchor="middle" fill="#C8A859" font-family="JetBrains Mono" font-size="12">W</text>
+    <text x="450" y="245" text-anchor="middle" fill="#C8A859" font-family="JetBrains Mono" font-size="12">E</text>
+  </svg>
+
+  <div class="container">
+    <div class="hero-eyebrow">Comparison Report · v1</div>
+    <h1>After the<br>Finish <em>Line</em></h1>
+    <p class="hero-sub">Five sailing performance apps put through the same questions: how they record on the water, what they show afterward, who they're built for, and what they cost.</p>
+    <div class="hero-meta">
+      <div>Subject<strong>5 Apps Compared</strong></div>
+      <div>Focus<strong>On-boat &amp; Post-Race</strong></div>
+      <div>Use case<strong>Small-Fleet Debriefs</strong></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============== QUICK SUMMARY ============== -->
+<section class="summary">
+  <div class="container">
+    <div class="section-eyebrow">The Contenders</div>
+    <h2 class="section-title">Five apps. Five <em>different</em> philosophies.</h2>
+    <p class="section-lede">Before the detail, the shape of the field. Each entry below approaches the same problem — making sense of a day on the water — from a different angle.</p>
+
+    <div class="summary-grid">
+      <div class="sum-card">
+        <span class="sum-flag free">Free</span>
+        <div class="sum-mono">№ 1</div>
+        <div class="sum-name">SailLab</div>
+        <div class="sum-tagline">Auto-grouping fleet analytics. Open beta, mobile-first.</div>
+      </div>
+      <div class="sum-card">
+        <span class="sum-flag paid">Freemium</span>
+        <div class="sum-mono">№ 2</div>
+        <div class="sum-name">SailTrace</div>
+        <div class="sum-tagline">iOS-native race tracker with synced fleet replays.</div>
+      </div>
+      <div class="sum-card">
+        <span class="sum-flag paid">Freemium</span>
+        <div class="sum-mono">№ 3</div>
+        <div class="sum-name">Waterspeed</div>
+        <div class="sum-tagline">Multi-sport tracker, deep hardware support, web app.</div>
+      </div>
+      <div class="sum-card">
+        <span class="sum-flag paid">Free/Paid</span>
+        <div class="sum-mono">№ 4</div>
+        <div class="sum-name">SailSync</div>
+        <div class="sum-tagline">Coach-led debriefs with AI reports and video overlay.</div>
+      </div>
+      <div class="sum-card">
+        <span class="sum-flag paid">Freemium</span>
+        <div class="sum-mono">№ 5</div>
+        <div class="sum-name">SailRacer</div>
+        <div class="sum-tagline">Tactical real-time decisions, optional InkDisplay hardware.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== MATRIX ============== -->
+<section style="background: var(--cream); padding-top: 0;">
+  <div class="container">
+    <div class="section-eyebrow">At a Glance</div>
+    <h2 class="section-title">The full <em>comparison matrix</em></h2>
+    <p class="section-lede">A single view of the differences that matter most. Detail follows below.</p>
+
+    <div class="matrix-wrap">
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th></th>
+            <th>SailLab</th>
+            <th>SailTrace</th>
+            <th>Waterspeed</th>
+            <th>SailSync</th>
+            <th>SailRacer</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>Platforms<small>Where it runs</small></th>
+            <td>iOS · Android</td>
+            <td>iOS only</td>
+            <td>iOS · Android · Watch</td>
+            <td>iOS · Web<br>(Android soon)</td>
+            <td>iOS · Android<br>Garmin Watch</td>
+          </tr>
+          <tr>
+            <th>Web portal<small>For debriefs</small></th>
+            <td><span class="cross">✕</span> No</td>
+            <td><span class="partial">Companion view</span></td>
+            <td><span class="tick">✓</span> Full Web App</td>
+            <td><span class="tick">✓</span> Full platform</td>
+            <td><span class="tick">✓</span> Event web</td>
+          </tr>
+          <tr>
+            <th>External instruments<small>Hardware support</small></th>
+            <td>Vakaros (VKX)<br>+ GPX import</td>
+            <td>Phone GPS only</td>
+            <td>Vakaros · Garmin<br>Coros · Suunto · AW</td>
+            <td>Vakaros · Garmin<br>Sailmon · Velocitek<br>Strava · GPX</td>
+            <td>InkDisplay<br>Event GPS units</td>
+          </tr>
+          <tr>
+            <th>On-boat tools<small>Live, in-race</small></th>
+            <td>Line ping<br>Start timer</td>
+            <td>Background<br>GPS recording</td>
+            <td>Live speed/VMG<br>on wrist</td>
+            <td>Shared countdowns<br>Live group map</td>
+            <td>Start timing<br>Laylines · Polars<br>Tactical maneuvers</td>
+          </tr>
+          <tr>
+            <th>Fleet model<small>How peers compare</small></th>
+            <td>Auto-grouped by<br>time + location</td>
+            <td>Same-race sync</td>
+            <td><span class="partial">Solo-oriented</span></td>
+            <td>Coach session<br>shared link</td>
+            <td>Event-organized<br>by clubs</td>
+          </tr>
+          <tr>
+            <th>Post-race depth<small>Analysis tier</small></th>
+            <td>Leg splits<br>Fleet medians<br>Maneuvers</td>
+            <td>Replays · Speed maps<br>Layline · Clear-air<br>(advanced = paid)</td>
+            <td>VMG · Polars<br>Foiling · Trends<br>(deep = Ultra)</td>
+            <td>AI reports · Video<br>overlay · Start analysis<br>PDF exports</td>
+            <td>Leg-by-leg<br>VMG · Tack angles<br>Race scoring</td>
+          </tr>
+          <tr>
+            <th>Pricing<small>Cost to use</small></th>
+            <td><span class="tick">Free</span><br>(open beta)</td>
+            <td>Free + paid tiers<br>for advanced</td>
+            <td>Free · Pro · Ultra<br>(subscription)</td>
+            <td>Free up to 3 boats<br>$21–$63/mo for more</td>
+            <td>Free + €35/yr<br>Premium</td>
+          </tr>
+          <tr>
+            <th>Best fit<small>Sweet spot</small></th>
+            <td>Casual club racing<br>with shared adoption</td>
+            <td>iOS-only fleets<br>wanting analytics</td>
+            <td>Solo training<br>across water sports</td>
+            <td>Small training groups<br>with a coach</td>
+            <td>Tactical racing<br>club-organized events</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============== DEEP DIVES ============== -->
+<section class="apps">
+  <div class="container">
+    <div class="section-eyebrow">Deep Dive</div>
+    <h2 class="section-title">Each app, in <em>detail</em>.</h2>
+    <p class="section-lede">On-boat capability, post-race analysis, and the honest verdict for each option.</p>
+  </div>
+
+  <div class="container">
+
+    <!-- ===== SailLab ===== -->
+    <div class="app-block" id="saillab">
+      <div class="app-side">
+        <div class="app-numeral">01</div>
+        <svg class="app-mark" viewBox="0 0 200 200">
+          <rect x="0" y="0" width="200" height="200" fill="#0F1B2D"/>
+          <path d="M 30 130 Q 100 80 170 130" stroke="#D4AC51" stroke-width="2" fill="none"/>
+          <path d="M 30 150 Q 100 100 170 150" stroke="#D4AC51" stroke-width="2" fill="none" opacity="0.6"/>
+          <path d="M 30 170 Q 100 120 170 170" stroke="#D4AC51" stroke-width="2" fill="none" opacity="0.3"/>
+          <circle cx="60" cy="115" r="4" fill="#D4AC51"/>
+          <circle cx="100" cy="92" r="4" fill="#D4AC51"/>
+          <circle cx="140" cy="118" r="4" fill="#D4AC51"/>
+          <text x="100" y="50" text-anchor="middle" fill="#F5EFE0" font-family="Fraunces" font-style="italic" font-size="22" font-weight="500">SailLab</text>
+        </svg>
+        <div class="app-tagline">"Trim your sails, not your data."</div>
+        <div class="app-meta">
+          <div><span>Maker</span><span>SailLab Analytics</span></div>
+          <div><span>Origin</span><span>Denmark</span></div>
+          <div><span>Status</span><span>Open Beta</span></div>
+          <div><span>Cost</span><span>Free</span></div>
+        </div>
+        <a class="app-link" href="https://saillab.app/" target="_blank" rel="noopener">Visit saillab.app</a>
+        <div class="app-screenshot-link"><a href="https://saillab.app/#how-it-works" target="_blank" rel="noopener">View app screenshots →</a></div>
+      </div>
+
+      <div class="app-body">
+        <p class="app-intro">The closest thing on the market to a spiritual successor to RaceQs — built around the radical idea that you shouldn't have to coordinate with anyone to get fleet comparison.</p>
+
+        <div class="feature-block">
+          <div class="feature-label">On the Boat</div>
+          <ul>
+            <li>In-app race tracker with start timer and line-end "ping" feature for capturing the start line</li>
+            <li>Phone GPS recording with offline support — uploads when you reach connectivity</li>
+            <li>No live tactical display (not its purpose — recording is passive in the background)</li>
+            <li>Imports tracks from a Vakaros Atlas (VKX) if you've recorded with one instead</li>
+          </ul>
+        </div>
+
+        <div class="feature-block">
+          <div class="feature-label">After the Finish</div>
+          <ul>
+            <li>Automatic race detection — finds your races and upwind/downwind legs without setup</li>
+            <li>Leg-by-leg splits across the whole fleet, no manual stopwatching</li>
+            <li>Tacking-speed comparison: time lost vs. fleet median, per maneuver</li>
+            <li>Start-line analysis: position, speed, and time-to-line vs. the front row</li>
+            <li>VMG comparison upwind and downwind against fleet average — not just one other boat</li>
+            <li>Mobile-only views (no web portal for projecting at the club bar)</li>
+          </ul>
+        </div>
+
+        <div class="verdict">
+          <strong>The honest take</strong>
+          The cleanest auto-detection of any app here, free during beta, and the only one whose fleet model actually works without coordination. The tradeoff is that the magic only fires if other boats in your fleet are also recording — and there's no web interface, so debriefs run from a phone screen.
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SailTrace ===== -->
+    <div class="app-block" id="sailtrace">
+      <div class="app-side">
+        <div class="app-numeral">02</div>
+        <svg class="app-mark" viewBox="0 0 200 200">
+          <rect x="0" y="0" width="200" height="200" fill="#1A2436"/>
+          <path d="M 30 160 Q 50 100 70 140 T 110 100 T 150 130 T 180 70" stroke="#D4AC51" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <circle cx="30" cy="160" r="4" fill="#D4AC51"/>
+          <circle cx="180" cy="70" r="6" fill="#C8442C"/>
+          <line x1="30" y1="40" x2="180" y2="40" stroke="#D4AC51" stroke-width="0.5" opacity="0.4" stroke-dasharray="2 3"/>
+          <text x="100" y="190" text-anchor="middle" fill="#F5EFE0" font-family="JetBrains Mono" font-size="9" letter-spacing="2">RECORD · REPLAY</text>
+        </svg>
+        <div class="app-tagline">"Record, replay, and analyze your races."</div>
+        <div class="app-meta">
+          <div><span>Maker</span><span>FirstByte</span></div>
+          <div><span>Platform</span><span>iOS only</span></div>
+          <div><span>Connectivity</span><span>Cellular required</span></div>
+          <div><span>Cost</span><span>Free + paid</span></div>
+        </div>
+        <a class="app-link" href="https://www.sailtrace.app/" target="_blank" rel="noopener">Visit sailtrace.app</a>
+        <div class="app-screenshot-link"><a href="https://apps.apple.com/us/app/sailtrace/id6743357767" target="_blank" rel="noopener">View app screenshots →</a></div>
+      </div>
+
+      <div class="app-body">
+        <p class="app-intro">A clean, modern iOS race tracker with a strong analytics layer behind a paywall. Spiritually the most direct RaceQs replacement on the iPhone, but locked to one platform.</p>
+
+        <div class="feature-block">
+          <div class="feature-label">On the Boat</div>
+          <ul>
+            <li>Hyper-accurate phone GPS that runs in the background with the screen locked</li>
+            <li>Requires a cellular data connection — important if you race offshore</li>
+            <li>Battery-optimized for hours of recording on a charged phone</li>
+            <li>No external hardware support documented</li>
+          </ul>
+        </div>
+
+        <div class="feature-block">
+          <div class="feature-label">After the Finish</div>
+          <ul>
+            <li>Dynamic race replays with the ability to scrub timeline</li>
+            <li>Fleet comparison with synchronized replays of every boat in the same race</li>
+            <li>Color-coded speed maps to see where you were fast or slow on the course</li>
+            <li>Automatic detection of tacks, gybes, and mark roundings with exact locations</li>
+            <li>Layline analysis — see how much you overstood or understood each layline</li>
+            <li>Clear-air statistics (advanced metrics live behind the paid subscription)</li>
+            <li>Stats viewable on both phone and computer; works for one-design and PHRF fleets</li>
+          </ul>
+        </div>
+
+        <div class="verdict">
+          <strong>The honest take</strong>
+          Polished and focused. If your fleet is all-iPhone, this is potentially the best-feeling product in the lineup. The catch: Android sailors are out, and the genuinely interesting analytics (clear air, layline efficiency, deeper metrics) sit behind a subscription.
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Waterspeed ===== -->
+    <div class="app-block" id="waterspeed">
+      <div class="app-side">
+        <div class="app-numeral">03</div>
+        <svg class="app-mark" viewBox="0 0 200 200">
+          <rect x="0" y="0" width="200" height="200" fill="#0F1B2D"/>
+          <circle cx="100" cy="110" r="60" stroke="#D4AC51" stroke-width="1.5" fill="none"/>
+          <circle cx="100" cy="110" r="42" stroke="#D4AC51" stroke-width="1" fill="none" opacity="0.5"/>
+          <circle cx="100" cy="110" r="24" stroke="#D4AC51" stroke-width="1" fill="none" opacity="0.3"/>
+          <line x1="100" y1="110" x2="148" y2="80" stroke="#C8442C" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="100" cy="110" r="4" fill="#C8442C"/>
+          <text x="100" y="45" text-anchor="middle" fill="#F5EFE0" font-family="Fraunces" font-size="18" font-weight="500">Waterspeed</text>
+          <text x="100" y="185" text-anchor="middle" fill="#D4AC51" font-family="JetBrains Mono" font-size="8" letter-spacing="2">VMG · POLAR · TRACK</text>
+        </svg>
+        <div class="app-tagline">"More than just a tracker."</div>
+        <div class="app-meta">
+          <div><span>Maker</span><span>MWM</span></div>
+          <div><span>Users</span><span>313,000+</span></div>
+          <div><span>Sports</span><span>30+ water sports</span></div>
+          <div><span>Tiers</span><span>Free · Pro · Ultra</span></div>
+        </div>
+        <a class="app-link" href="https://www.waterspeedapp.com/" target="_blank" rel="noopener">Visit waterspeedapp.com</a>
+        <div class="app-screenshot-link"><a href="https://www.waterspeedapp.com/blog/waterspeed-ultra" target="_blank" rel="noopener">View app screenshots →</a></div>
+      </div>
+
+      <div class="app-body">
+        <p class="app-intro">The most hardware-friendly app in the field, and the broadest in scope — Waterspeed covers sailing alongside windsurfing, wing-foiling, SUP, and dozens of other water sports. A real web app makes it the most "debrief at a laptop" friendly option short of SailSync.</p>
+
+        <div class="feature-block">
+          <div class="feature-label">On the Boat</div>
+          <ul>
+            <li>Live speed, VMG, and heart rate visible on Apple Watch or Garmin without the phone</li>
+            <li>Race countdown timers and start-line tools built into the app and watch face</li>
+            <li>Integrates with Apple Watch, Garmin, Coros, Suunto — with Wear OS support coming</li>
+            <li>Imports tracks from a Vakaros Atlas Edge or Atlas 2 after the session</li>
+            <li>Built-in safety features including live location sharing while offshore</li>
+          </ul>
+        </div>
+
+        <div class="feature-block">
+          <div class="feature-label">After the Finish</div>
+          <ul>
+            <li>The new "Ultra" tier breaks sessions into upwind and downwind legs automatically</li>
+            <li>VMG analysis, polar charts, tack and gybe counts, foiling efficiency</li>
+            <li>Compare sessions over time — trend analysis across days, weeks, equipment changes</li>
+            <li>Personal-record tracking for short bursts and long runs</li>
+            <li>Web App is the primary upload destination for Vakaros files and the best debrief surface</li>
+            <li>Less fleet-aggregation focused than SailLab or SailSync — more about your own progress</li>
+          </ul>
+        </div>
+
+        <div class="verdict">
+          <strong>The honest take</strong>
+          The depth-to-cost ratio is best if you're a solo performance sailor or do multiple water sports. Hardware coverage is unmatched here. The weakness for your use case: it doesn't really do fleet comparison the way SailLab or SailTrace do — it's a "you vs. your past self" tool more than a "you vs. the fleet" tool.
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SailSync ===== -->
+    <div class="app-block" id="sailsync">
+      <div class="app-side">
+        <div class="app-numeral">04</div>
+        <svg class="app-mark" viewBox="0 0 200 200">
+          <rect x="0" y="0" width="200" height="200" fill="#1A2436"/>
+          <circle cx="70" cy="100" r="22" fill="#D4AC51" opacity="0.85"/>
+          <circle cx="130" cy="100" r="22" fill="#C8442C" opacity="0.85"/>
+          <circle cx="100" cy="100" r="22" fill="#F5EFE0" opacity="0.7"/>
+          <path d="M 100 130 L 70 165 L 130 165 Z" fill="none" stroke="#D4AC51" stroke-width="1.5"/>
+          <text x="100" y="45" text-anchor="middle" fill="#F5EFE0" font-family="Fraunces" font-style="italic" font-size="18" font-weight="500">SailSync</text>
+          <text x="100" y="188" text-anchor="middle" fill="#D4AC51" font-family="JetBrains Mono" font-size="8" letter-spacing="2">COACH · TEAM · AI</text>
+        </svg>
+        <div class="app-tagline">"Sailing insights made easy."</div>
+        <div class="app-meta">
+          <div><span>Maker</span><span>Sail Sync, LLC</span></div>
+          <div><span>Origin</span><span>Sacramento, CA</span></div>
+          <div><span>Web</span><span>Full platform</span></div>
+          <div><span>Free tier</span><span>3 boats/session</span></div>
+        </div>
+        <a class="app-link" href="https://sailsync.ai/" target="_blank" rel="noopener">Visit sailsync.ai</a>
+        <div class="app-screenshot-link"><a href="https://sailsync.ai/#how_it_works" target="_blank" rel="noopener">View app screenshots →</a></div>
+      </div>
+
+      <div class="app-body">
+        <p class="app-intro">A two-piece system: iOS app for capture plus a serious web platform for analysis. Built around the coach-led debrief workflow, but the free tier is generous enough for small training groups even without a coach.</p>
+
+        <div class="feature-block">
+          <div class="feature-label">On the Boat</div>
+          <ul>
+            <li>Live group tracking with shared start countdowns synchronized across devices</li>
+            <li>Live map showing mark positions and other boats in your session</li>
+            <li>Distance to the starting line displayed in real time</li>
+            <li>Native iOS recording, plus direct Garmin watch integration (auto-syncs after session)</li>
+            <li>Accepts Vakaros, Sailmon, Velocitek tracks; also imports GPX and Strava activities</li>
+            <li>Video recording from your phone for later overlay on the track</li>
+          </ul>
+        </div>
+
+        <div class="feature-block">
+          <div class="feature-label">After the Finish</div>
+          <ul>
+            <li>FLOAssist — AI-powered debrief reports that turn the day's data into a written summary</li>
+            <li>Telemetry video replays — overlay speed, VMG, and position on top of footage</li>
+            <li>Dedicated race start analysis: timing, speed, positioning at the gun</li>
+            <li>Per-leg and per-maneuver breakdowns with side-by-side comparisons</li>
+            <li>Find target speeds across different setups and tuning configurations</li>
+            <li>PDF report exports for sharing with crew or athletes</li>
+            <li>One upload link gathers all sailors' tracks into a single session — no chasing files</li>
+          </ul>
+        </div>
+
+        <div class="verdict">
+          <strong>The honest take</strong>
+          The most complete debrief platform in this comparison. If your debrief workflow involves projecting at the club or sharing structured feedback, nothing else is close. The constraint is the 3-boat free ceiling — perfect for training partners, painful for a full club race. Paid tiers ($21–$63/month) are genuine money for casual use.
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SailRacer ===== -->
+    <div class="app-block" id="sailracer">
+      <div class="app-side">
+        <div class="app-numeral">05</div>
+        <svg class="app-mark" viewBox="0 0 200 200">
+          <rect x="0" y="0" width="200" height="200" fill="#0F1B2D"/>
+          <polygon points="100,40 120,150 80,150" fill="#F5EFE0" opacity="0.95"/>
+          <polygon points="100,40 120,150 100,150" fill="#D4AC51" opacity="0.6"/>
+          <line x1="100" y1="40" x2="100" y2="170" stroke="#D4AC51" stroke-width="1.5"/>
+          <line x1="50" y1="170" x2="150" y2="170" stroke="#D4AC51" stroke-width="1.5"/>
+          <circle cx="100" cy="40" r="3" fill="#C8442C"/>
+          <text x="100" y="195" text-anchor="middle" fill="#D4AC51" font-family="JetBrains Mono" font-size="8" letter-spacing="2">TACTICAL · POLAR · WIND</text>
+        </svg>
+        <div class="app-tagline">"Milliseconds matter."</div>
+        <div class="app-meta">
+          <div><span>Maker</span><span>SailRacer.net</span></div>
+          <div><span>Origin</span><span>Lithuania</span></div>
+          <div><span>Hardware</span><span>InkDisplay (opt.)</span></div>
+          <div><span>Premium</span><span>€35/year</span></div>
+        </div>
+        <a class="app-link" href="https://sailracer.net/" target="_blank" rel="noopener">Visit sailracer.net</a>
+        <div class="app-screenshot-link"><a href="https://sailracer.net/docs/application/" target="_blank" rel="noopener">View app screenshots →</a></div>
+      </div>
+
+      <div class="app-body">
+        <p class="app-intro">The most explicitly tactical app in this lineup — built around the moments before and during a race, not the debrief afterward. Strongest when paired with the proprietary InkDisplay hardware. The post-race analysis side is solid but secondary.</p>
+
+        <div class="feature-block">
+          <div class="feature-label">On the Boat</div>
+          <ul>
+            <li>Live tactical decisions: lay lines, polar speed targets, wind shifts, current effect</li>
+            <li>Precise start timing — calculates the favored end and time-to-line at full speed</li>
+            <li>Distance and bearing to next mark, adjusted for current</li>
+            <li>Optional InkDisplay hardware — high-contrast e-paper screen, visible through polarized sunglasses, waterproof</li>
+            <li>Watch app available for Garmin (and previously for Pebble — yes, that Pebble)</li>
+            <li>Strong club-event integration via the SailRacer.org event side</li>
+          </ul>
+        </div>
+
+        <div class="feature-block">
+          <div class="feature-label">After the Finish</div>
+          <ul>
+            <li>Race replay mode showing where the race was won and lost</li>
+            <li>Leg-by-leg analysis: speeds, times, tacking angles, and VMG comparisons</li>
+            <li>Distance lost during tacks and gybes — measured against TWD or COG axis</li>
+            <li>Time-of-maneuver and distance-lost-to-mark metrics</li>
+            <li>Progressive series analysis (more useful at organized events than informal racing)</li>
+            <li>Web-based race viewer for event organizers — works on any device</li>
+          </ul>
+        </div>
+
+        <div class="verdict">
+          <strong>The honest take</strong>
+          Different category than the others — it's a live tactical tool first, with post-race as a secondary feature. If you want a sailing computer in your cockpit, especially with the InkDisplay, this is the only entry here that fits. If your priority is debrief on the bar TV after racing, the others serve that better.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============== RECOMMENDATION ============== -->
+<section class="rec">
+  <div class="container">
+    <div class="section-eyebrow">Final Recommendation</div>
+    <h2 class="section-title">Match the app to <em>the situation</em>.</h2>
+    <p class="section-lede">No single answer wins. Below — five common scenarios and the pick for each.</p>
+
+    <div class="scenarios">
+
+      <div class="scenario">
+        <div class="scenario-tag">Scenario 01</div>
+        <div class="scenario-q">"I want RaceQs-style fleet replay, totally free, with no setup."</div>
+        <div class="scenario-pick">SailLab</div>
+        <div class="scenario-a">Auto race detection, fleet aggregation by time and location, no event codes. Only catch — fellow sailors need to be running it too, and you'll be debriefing on a phone screen.</div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-tag">Scenario 02</div>
+        <div class="scenario-q">"My training partners and I want serious post-race debriefs."</div>
+        <div class="scenario-pick">SailSync</div>
+        <div class="scenario-a">The 3-boat free tier is built for exactly this. Full web platform, AI debrief reports, video overlay, broad hardware support. The most "professional debrief" feel of any free option.</div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-tag">Scenario 03</div>
+        <div class="scenario-q">"I want a live tactical computer in my cockpit during racing."</div>
+        <div class="scenario-pick">SailRacer</div>
+        <div class="scenario-a">The only entry built primarily for live tactical decision-making. The InkDisplay hardware is genuinely best-in-class for sunlight visibility — but adds cost.</div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-tag">Scenario 04</div>
+        <div class="scenario-q">"I do multiple water sports and care about my own performance."</div>
+        <div class="scenario-pick">Waterspeed</div>
+        <div class="scenario-a">Broadest hardware support, real web app, and analytics that travel across sailing, foiling, windsurfing, SUP, and more. Less about peer comparison; more about your trajectory over time.</div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-tag">Scenario 05</div>
+        <div class="scenario-q">"My whole fleet is on iPhone and we want clean race replays."</div>
+        <div class="scenario-pick">SailTrace</div>
+        <div class="scenario-a">Polished, focused, and the cleanest synchronized-replay experience if everyone's on iOS. Just be aware that the deeper analytics (clear-air, layline efficiency) live behind a paywall.</div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-tag">Pragmatic Combo</div>
+        <div class="scenario-q">"What if I want it all?"</div>
+        <div class="scenario-pick">SailLab + SailSync free</div>
+        <div class="scenario-a">Record once on your phone with SailLab for the auto-detected fleet view. Upload the same track to SailSync to use the AI debrief and video overlay for your own boat. Zero cost, two complementary lenses.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    Comparison Report · After the Finish Line · Prepared May 2026 · Based on publicly available information at time of compilation
+  </div>
+</footer>
+
+</body>
+</html>
