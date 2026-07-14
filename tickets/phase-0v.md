@@ -43,7 +43,7 @@ Verify: supabase db reset && cd backend && uv run pytest -q && uv run flake8 pas
 Escalate if: psycopg/Supavisor connection behavior is surprising (trigger 3/4), or Settings alias handling fights pydantic-settings after two attempts
 Note: `Field(alias="CRON_SECRET")` + `populate_by_name=True` on `model_config` worked on the first try — pydantic-settings respects an explicit field alias over `env_prefix` for that one field, and `populate_by_name` lets tests construct `Settings(cron_secret=...)` by name instead of by alias. Local Supabase CLI binary needed manual reinstall (unrelated packaging snag from the earlier `brew` fallback, not a contract issue) but once running, `supabase init` / `migration new` / `start` / `db reset` all behaved exactly as specced — local DSN matched `postgresql://postgres:postgres@127.0.0.1:54322/postgres` exactly.
 
-### [ ] T0V.3 Keep-alive cron endpoint · Complexity: S
+### [x] T0V.3 Keep-alive cron endpoint · Complexity: S
 Files: backend/passage/api/cron.py, backend/passage/main.py, backend/tests/test_cron.py
 Contract: specs/api-skeleton.md (Endpoints, Auth exception), specs/deployment.md (Keep-alive)
 Do:
@@ -53,6 +53,7 @@ Accept:
 - 401 without/with wrong secret; 200 + `{"database": "ok"}` with correct secret (against local stack)
 - User token does NOT authorize the cron endpoint, and CRON_SECRET does not authorize /api/me
 Verify: cd backend && uv run pytest -q && uv run flake8 passage
+Note: kept `cron.py` self-contained (own `HTTPBearer` instance + `require_cron_secret` dependency, mirroring `api/auth.py`'s pattern) rather than trying to parameterize `require_auth` — two routers with disjoint concrete paths (`/api/me` vs `/api/cron/keepalive`) included separately on the app, no path/dependency collision to worry about.
 
 ### [ ] T0V.4 Vercel project config · Complexity: S
 Files: backend/pyproject.toml, backend/vercel.json, backend/.vercelignore, frontend/vercel.json

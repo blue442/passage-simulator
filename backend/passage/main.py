@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from passage import __version__
+from passage.api.cron import router as cron_router
 from passage.api.routes import router as api_router
 
 
@@ -12,6 +13,7 @@ def create_app() -> FastAPI:
         return {"status": "ok", "version": __version__}
 
     app.include_router(api_router)
+    app.include_router(cron_router)
 
     return app
 
