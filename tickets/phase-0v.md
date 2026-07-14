@@ -23,7 +23,7 @@ Accept:
 Verify: cd backend && uv run pytest -q && uv run flake8 passage
 Note: left `database_path`/`Path` on Settings untouched here since T0V.2 owns that swap; only `static_dir` came out. No surprises.
 
-### [ ] T0V.2 Postgres settings + db module + first migration · Complexity: M
+### [x] T0V.2 Postgres settings + db module + first migration · Complexity: M
 Files: backend/passage/config.py, backend/passage/db/__init__.py, backend/pyproject.toml (add psycopg), supabase/config.toml, supabase/migrations/<ts>_init_app_meta.sql, backend/tests/test_db.py, .env.example
 Contract: specs/deployment.md (Database), specs/api-skeleton.md (Settings, Database access)
 Do:
@@ -41,6 +41,7 @@ Accept:
 - Test suite passes against the local stack
 Verify: supabase db reset && cd backend && uv run pytest -q && uv run flake8 passage
 Escalate if: psycopg/Supavisor connection behavior is surprising (trigger 3/4), or Settings alias handling fights pydantic-settings after two attempts
+Note: `Field(alias="CRON_SECRET")` + `populate_by_name=True` on `model_config` worked on the first try — pydantic-settings respects an explicit field alias over `env_prefix` for that one field, and `populate_by_name` lets tests construct `Settings(cron_secret=...)` by name instead of by alias. Local Supabase CLI binary needed manual reinstall (unrelated packaging snag from the earlier `brew` fallback, not a contract issue) but once running, `supabase init` / `migration new` / `start` / `db reset` all behaved exactly as specced — local DSN matched `postgresql://postgres:postgres@127.0.0.1:54322/postgres` exactly.
 
 ### [ ] T0V.3 Keep-alive cron endpoint · Complexity: S
 Files: backend/passage/api/cron.py, backend/passage/main.py, backend/tests/test_cron.py

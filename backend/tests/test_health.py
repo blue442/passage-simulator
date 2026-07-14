@@ -7,7 +7,11 @@ from passage.main import create_app
 
 def test_health_returns_status_and_version() -> None:
     app = create_app()
-    app.dependency_overrides[get_settings] = lambda: Settings(auth_token="test-token")
+    app.dependency_overrides[get_settings] = lambda: Settings(
+        auth_token="test-token",
+        database_url="postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+        cron_secret="test-cron-secret",
+    )
 
     with TestClient(app) as client:
         response = client.get("/health")
