@@ -69,7 +69,7 @@ Accept:
 Verify: cd backend && uv run pytest -q && python -c "import json; json.load(open('vercel.json')); json.load(open('../frontend/vercel.json'))"
 Note: these files are inert until T0V.7's first deploy proves the FastAPI-preset assumptions; nothing to escalate yet, just flagging the real test is still ahead.
 
-### [ ] T0V.5 CI: Postgres service for backend tests · Complexity: S
+### [x] T0V.5 CI: Postgres service for backend tests · Complexity: S
 Files: .github/workflows/ci.yml
 Contract: specs/deployment.md (Database — CI applies migrations with psql)
 Do:
@@ -79,6 +79,7 @@ Accept:
 - Workflow YAML is valid; the psql loop applies migrations in filename (timestamp) order
 - Frontend job unchanged
 Verify: cd backend && uv run pytest -q  (full CI validation lands with T0V.7's repo push)
+Note: went further than the stated verify command — spun up a throwaway `postgres:17` container locally, applied `supabase/migrations/*.sql` with the exact `psql` loop from the workflow, then ran the full test suite against it with `PASSAGE_AUTH_TOKEN=ci-test`/`CRON_SECRET=ci-test`/the container's DSN. All 11 tests passed, so the CI recipe is proven, not just YAML-valid, ahead of T0V.7's real push.
 
 ### [ ] T0V.6 README + .env.example final pass · Complexity: S
 Files: README.md, .env.example

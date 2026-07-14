@@ -11,11 +11,32 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PASSAGE_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+      PASSAGE_AUTH_TOKEN: ci-test
+      CRON_SECRET: ci-test
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
       - run: uv sync --all-extras --dev
       - run: uv run flake8 passage
+      - name: Apply migrations
+        run: |
+          for f in ../supabase/migrations/*.sql; do
+            psql "$PASSAGE_DATABASE_URL" -f "$f"
+          done
       - run: uv run pytest -q
 
   frontend:
