@@ -84,3 +84,16 @@ Do (with Steven, who holds the accounts):
 - `fly launch` (reuse fly.toml), create volume, `fly secrets set PASSAGE_AUTH_TOKEN=<generated>`, `fly deploy`
 Accept: Steven logs in and sees the map on his phone over HTTPS
 Escalate if: n/a (coordination ticket)
+
+## Blocked
+
+Paused before T0.7 pending Steven's hosting decision (not a technical blocker — implementation-ready either way).
+
+Context for whoever picks this up: Fly.io dropped its permanent free tier in 2024; running the existing `fly.toml` (shared-cpu-1x, auto-stop/start) costs roughly $2-5/month. Steven asked about free alternatives before spending anything. Researched (2026-07-14) and reconsidered:
+
+- **Vercel**: free Hobby plan allows up to 200 projects (not the 1-project limit Steven assumed), so that wasn't the real constraint. The actual blocker is architectural: Vercel is serverless-only (ephemeral functions, no persistent local disk), and this app's design — one long-running uvicorn process with SQLite on a volume (see PLAN.md "SQLite on a Fly volume... zero ops") — doesn't map onto that without swapping SQLite for a hosted DB and rewriting the backend as serverless functions. Recommended against this: real, ongoing engineering cost to save a few dollars a month.
+- **Render**: free web services can't attach a persistent disk at all (same dealbreaker as Vercel); free Postgres expires after 30 days.
+- **Oracle Cloud "Always Free"**: the one genuinely free option with a real persistent VM + block storage (currently 2 OCPU/12GB RAM, 200GB disk after a June 2026 cut) — the existing Dockerfile would run unmodified. Risk: Oracle aggressively reclaims instances it judges idle, and this app is designed to be idle most of the time (check in once or twice a day) — a real fit problem for this specific usage pattern.
+- **Self-hosting** (spare machine + Cloudflare Tunnel): genuinely free, zero rearchitecting, no reclamation risk, but Steven owns uptime/updates instead of a host.
+
+Recommendation given to Steven: stick with Fly — the Dockerfile/fly.toml from T0.5 already work end-to-end (verified locally), and no other option is both free and architecture-preserving without a real tradeoff (Vercel/Render need a rearchitecture, Oracle has reclamation risk for this app's idle-heavy traffic pattern, self-hosting shifts ops burden to Steven). Decision on which path to take is still open as of this note — resume by asking Steven which way he wants to go, then proceed with T0.7 accordingly (if self-hosting or Oracle, the `fly launch`/`fly secrets`/`fly deploy` steps above don't apply and need swapping for the equivalent on whatever platform is chosen).
