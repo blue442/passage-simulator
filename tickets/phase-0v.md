@@ -55,7 +55,7 @@ Accept:
 Verify: cd backend && uv run pytest -q && uv run flake8 passage
 Note: kept `cron.py` self-contained (own `HTTPBearer` instance + `require_cron_secret` dependency, mirroring `api/auth.py`'s pattern) rather than trying to parameterize `require_auth` — two routers with disjoint concrete paths (`/api/me` vs `/api/cron/keepalive`) included separately on the app, no path/dependency collision to worry about.
 
-### [ ] T0V.4 Vercel project config · Complexity: S
+### [x] T0V.4 Vercel project config · Complexity: S
 Files: backend/pyproject.toml, backend/vercel.json, backend/.vercelignore, frontend/vercel.json
 Contract: specs/deployment.md (Shape, Keep-alive)
 Do:
@@ -67,6 +67,7 @@ Accept:
 - All JSON valid; local behavior unchanged (these files are inert outside Vercel)
 - Note: real validation happens at T0V.7's first deploy. If the deploy later rejects the `functions` key pattern for the FastAPI preset, that's a config-shape question — consult Vercel docs once, then escalate (trigger 4), don't guess repeatedly.
 Verify: cd backend && uv run pytest -q && python -c "import json; json.load(open('vercel.json')); json.load(open('../frontend/vercel.json'))"
+Note: these files are inert until T0V.7's first deploy proves the FastAPI-preset assumptions; nothing to escalate yet, just flagging the real test is still ahead.
 
 ### [ ] T0V.5 CI: Postgres service for backend tests · Complexity: S
 Files: .github/workflows/ci.yml
