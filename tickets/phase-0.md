@@ -45,7 +45,7 @@ Accept:
 Verify: cd frontend && npm run build
 Note: current `create-vite` template scaffolds with `src/` at flat root (matches contract), oxlint instead of eslint, and doesn't set `"strict": true` explicitly in tsconfig.app.json by default — added it explicitly alongside the template's existing granular strict-ish flags. No MapLibre/TS friction, no escalation needed. Verified login/wrong-token/no-token behavior by curling the Vite dev proxy directly (200/401/401 as expected) rather than in an actual browser — claude-in-chrome wasn't available in this background session, so the visual "enter token, see map, refresh stays logged in" check per the Accept criteria is unverified in-browser and worth a manual look.
 
-### [ ] T0.4 Serve built frontend from FastAPI · Complexity: S
+### [x] T0.4 Serve built frontend from FastAPI · Complexity: S
 Files: backend/passage/main.py (static mount), backend/tests/test_static.py
 Contract: specs/api-skeleton.md (Static serving)
 Do:
@@ -54,6 +54,7 @@ Accept:
 - Test with a tmp dir containing index.html: `/` and `/some/route` return it; `/api/me` still routes to the API
 - `static_dir=None` (dev) changes nothing
 Verify: cd backend && uv run pytest -q
+Note: implemented as a catch-all `GET /{full_path:path}` route using `Depends(get_settings)` (resolved per-request) rather than `app.mount(StaticFiles)` decided at app-construction time — mounting would require reading `get_settings()` eagerly inside `create_app()`, which breaks the "no I/O at import" rule since `main.py` does `app = create_app()` at module level and `Settings.auth_token` has no default. The catch-all serves the real file if it exists under `static_dir`, else falls back to `index.html`; `/health` and `/api/*` are registered first so they still win the route match.
 
 ### [ ] T0.5 Dockerfile + Fly config · Complexity: M
 Files: Dockerfile, .dockerignore, fly.toml
