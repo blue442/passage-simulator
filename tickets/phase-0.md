@@ -19,7 +19,7 @@ Accept:
 Verify: cd backend && uv run pytest -q && uv run flake8 passage
 Note: `uv init --package` defaults to a `src/` layout; used `tool.uv.build-backend.module-root = ""` in pyproject.toml to get the flat `backend/passage/` layout the conventions spec calls for. flake8 config lives in `setup.cfg` (plain flake8 doesn't read `[tool.flake8]` from pyproject.toml without a plugin). Pinned Python to 3.12.2 via `uv python pin` since the ambient default was 3.11.
 
-### [ ] T0.2 Bearer-token auth · Complexity: S
+### [x] T0.2 Bearer-token auth · Complexity: S
 Files: backend/passage/api/auth.py, backend/passage/api/routes.py, backend/tests/test_auth.py
 Contract: specs/api-skeleton.md (Auth section)
 Do:
@@ -29,6 +29,7 @@ Accept:
 - /api/me → 401 without token, 401 with wrong token, 200 `{"authenticated": true}` with correct token
 - /health still unauthenticated
 Verify: cd backend && uv run pytest -q
+Note: used FastAPI's `HTTPBearer(auto_error=False)` security scheme rather than hand-parsing the header, so a missing header and a malformed one both funnel through the same `require_auth` check.
 
 ### [ ] T0.3 Frontend scaffold with map + login · Complexity: M
 Files: frontend/ (Vite React-TS app), frontend/src/api/client.ts, frontend/src/components/{Login,MapView}.tsx, frontend/vite.config.ts
