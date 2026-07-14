@@ -31,7 +31,7 @@ Accept:
 Verify: cd backend && uv run pytest -q
 Note: used FastAPI's `HTTPBearer(auto_error=False)` security scheme rather than hand-parsing the header, so a missing header and a malformed one both funnel through the same `require_auth` check.
 
-### [ ] T0.3 Frontend scaffold with map + login · Complexity: M
+### [x] T0.3 Frontend scaffold with map + login · Complexity: M
 Files: frontend/ (Vite React-TS app), frontend/src/api/client.ts, frontend/src/components/{Login,MapView}.tsx, frontend/vite.config.ts
 Contract: specs/api-skeleton.md (Frontend auth flow, Basemap), specs/conventions.md (Frontend rules)
 Do:
@@ -43,7 +43,7 @@ Accept:
 - With backend running: enter token, see the map; wrong token shows an error; refresh stays logged in
 - `npm run build` passes tsc strict
 Verify: cd frontend && npm run build
-Escalate if: MapLibre/React integration fights strict TS beyond simple typing fixes (trigger 4 after two attempts)
+Note: current `create-vite` template scaffolds with `src/` at flat root (matches contract), oxlint instead of eslint, and doesn't set `"strict": true` explicitly in tsconfig.app.json by default — added it explicitly alongside the template's existing granular strict-ish flags. No MapLibre/TS friction, no escalation needed. Verified login/wrong-token/no-token behavior by curling the Vite dev proxy directly (200/401/401 as expected) rather than in an actual browser — claude-in-chrome wasn't available in this background session, so the visual "enter token, see map, refresh stays logged in" check per the Accept criteria is unverified in-browser and worth a manual look.
 
 ### [ ] T0.4 Serve built frontend from FastAPI · Complexity: S
 Files: backend/passage/main.py (static mount), backend/tests/test_static.py

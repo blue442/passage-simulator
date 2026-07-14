@@ -1,0 +1,30 @@
+.login-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 280px;
+  text-align: center;
+}
+
+.login-form input {
+  padding: 10px 12px;
+  font-size: 16px;
+}
+
+.login-form button {
+  padding: 10px 12px;
+  font-size: 16px;
+}
+
+.login-error {
+  color: #c0392b;
+  margin: 0;
+}
