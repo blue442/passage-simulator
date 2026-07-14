@@ -1,0 +1,23 @@
+# Reused as-is by `fly launch` in T0.7; app name/region are placeholders
+# that `fly launch` will confirm or override interactively.
+app = "passage-simulator"
+primary_region = "ord"
+
+[build]
+
+[env]
+  PASSAGE_DATABASE_PATH = "/data/passage.db"
+
+[[mounts]]
+  source = "passage_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  size = "shared-cpu-1x"

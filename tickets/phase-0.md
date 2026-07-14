@@ -56,7 +56,7 @@ Accept:
 Verify: cd backend && uv run pytest -q
 Note: implemented as a catch-all `GET /{full_path:path}` route using `Depends(get_settings)` (resolved per-request) rather than `app.mount(StaticFiles)` decided at app-construction time — mounting would require reading `get_settings()` eagerly inside `create_app()`, which breaks the "no I/O at import" rule since `main.py` does `app = create_app()` at module level and `Settings.auth_token` has no default. The catch-all serves the real file if it exists under `static_dir`, else falls back to `index.html`; `/health` and `/api/*` are registered first so they still win the route match.
 
-### [ ] T0.5 Dockerfile + Fly config · Complexity: M
+### [x] T0.5 Dockerfile + Fly config · Complexity: M
 Files: Dockerfile, .dockerignore, fly.toml
 Contract: specs/conventions.md (Secrets)
 Do:
@@ -66,6 +66,7 @@ Accept:
 - `docker build .` succeeds; `docker run -e PASSAGE_AUTH_TOKEN=x -p 8000:8000 <img>` serves the map at localhost:8000
 Verify: docker build -t passage-sim . && docker run --rm -d -e PASSAGE_AUTH_TOKEN=test -p 8000:8000 passage-sim && sleep 2 && curl -sf localhost:8000/health
 Escalate if: uv-in-Docker layering gets fiddly after two attempts (trigger 4)
+Note: layered `uv sync --frozen --no-install-project --no-dev` (deps only, cached before source copy) then a second `uv sync --frozen --no-dev` after `COPY backend/passage` (installs the local project) — standard uv Docker caching pattern, no fiddling needed. uv binary pulled from `ghcr.io/astral-sh/uv:0.11` per astral's documented recipe rather than `pip install uv`. fly.toml sets `min_machines_running = 0` / autostart-autostop deliberately: matches the lazy-catch-up architecture (PLAN.md) where nothing needs to run between check-ins. `app`/`primary_region` in fly.toml are placeholders for `fly launch` in T0.7 to confirm. Verified full container locally: `/health`, `/` (static frontend), `/api/me` both unauthorized and authorized.
 
 ### [ ] T0.6 README + .env.example · Complexity: S
 Files: README.md, .env.example
