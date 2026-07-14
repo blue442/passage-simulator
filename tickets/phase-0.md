@@ -6,7 +6,7 @@ Phase exit: deployed hello-world map you can log into from a phone.
 
 ---
 
-### [ ] T0.1 Backend scaffold · Complexity: S
+### [x] T0.1 Backend scaffold · Complexity: S
 Files: backend/pyproject.toml, backend/passage/{__init__,main,config}.py, backend/passage/api/__init__.py, backend/tests/test_health.py
 Contract: specs/api-skeleton.md, specs/conventions.md
 Do:
@@ -17,6 +17,7 @@ Accept:
 - `uv run uvicorn passage.main:app` serves /health locally
 - No engine/weather/db code yet; just the shell
 Verify: cd backend && uv run pytest -q && uv run flake8 passage
+Note: `uv init --package` defaults to a `src/` layout; used `tool.uv.build-backend.module-root = ""` in pyproject.toml to get the flat `backend/passage/` layout the conventions spec calls for. flake8 config lives in `setup.cfg` (plain flake8 doesn't read `[tool.flake8]` from pyproject.toml without a plugin). Pinned Python to 3.12.2 via `uv python pin` since the ambient default was 3.11.
 
 ### [ ] T0.2 Bearer-token auth · Complexity: S
 Files: backend/passage/api/auth.py, backend/passage/api/routes.py, backend/tests/test_auth.py
