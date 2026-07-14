@@ -13,8 +13,8 @@ A web-based sail passage simulator for honing ocean passage-planning skills. Thi
 | Sim depth | Four modules, each toggleable per passage: (1) navigation and performance, (2) sail plan and trim, (3) Oregon Trail events and attrition, (4) safety and tactics. |
 | Boats | Generic cruiser presets first (35ft cruiser, 45ft performance cruiser, cruising cat), with a path to custom boats/polars later. |
 | Weather | Open-Meteo APIs are the simulation's ground truth. Real GRIB files (GFS, WaveWatch III) are collected for the *user* to plan with, just like real passage-making. |
-| Stack | Python/FastAPI sim engine + SQLite, TypeScript frontend with MapLibre GL. |
-| Hosting | Fly.io from day one (single instance, volume-backed SQLite), simple single-user auth. |
+| Stack | Python/FastAPI sim engine + Postgres (Supabase), TypeScript frontend with MapLibre GL. |
+| Hosting | Vercel from day one (FastAPI as a serverless function + static frontend, free Hobby tier), Supabase free-tier Postgres, simple single-user auth. Revised from Fly.io at the Pre-0.5 gate — see specs/deployment.md. |
 | Waters | Global free-form sailing plus a curated featured-passage library. |
 | Stakes | Real consequences. Damage cascades, storms can dismast or roll you, passages can end in abandonment or death. Ports of refuge and retirement are options. |
 | Alerts | Pull-only in v1. If a gale developed while you weren't watching, you find out at check-in. That's the training. |
@@ -42,10 +42,10 @@ backend/   (FastAPI, Python, uv)
     orders.py     standing-orders rules engine
     events.py     condition-driven hazards, damage states, attrition
     resources.py  water, provisions, power, crew fatigue
-  weather/        Open-Meteo client + SQLite response cache (forecast, marine, past hours)
+  weather/        Open-Meteo client + Postgres response cache (forecast, marine, past hours)
   gribs/          NOAA NOMADS subsetting/download, decode (cfgrib) to JSON grids for display
   geo/            land mask (GSHHG coastline) for grounding checks, rhumb/great-circle math
-  db/             SQLite: passages, boats, track points, log entries, orders, events, weather cache
+  db/             Postgres: passages, boats, track points, log entries, orders, events, weather cache
 ```
 
 **Key design decisions**
@@ -54,12 +54,12 @@ backend/   (FastAPI, Python, uv)
 - **Two weather planes, on purpose.** The engine's truth (Open-Meteo) and the user's planning data (GRIBs you can download and open in the app, or in qtVlm/XyGrib if you like) are different views of similar models — exactly the epistemic situation of a real skipper. Your plan is only as good as your forecast reading.
 - **Standing orders as structured rules, not free text.** JSON rules (`condition → action`) built in a UI: conditions over TWS/TWA/gusts/wave height/barometer/time/position, actions over course, sail plan, tactics (heave-to, run off). The log narrates when and why each rule fired.
 - **Events are condition-driven, not random.** Hazard rates scale with what you're doing wrong: overcanvassed in 30kt raises gear-failure odds; days of high fatigue raise mistake odds; ignored chafe becomes a torn sail. Oregon Trail narration, actuarially honest underneath.
-- **SQLite on a Fly volume.** Single user, modest writes, zero ops. Litestream backup to object storage as cheap insurance.
+- **Serverless-friendly by construction.** The lazy catch-up design means nothing runs between check-ins, which is exactly the shape serverless wants: FastAPI runs as a Vercel function, Supabase Postgres holds all state, and catch-up simulation is chunked so no single request outruns a function's time budget (specs/deployment.md). Single user, modest writes, zero ops, near-zero cost.
 
 ## Phases
 
 ### Phase 0: Scaffold and pipeline
-uv project + pyproject, FastAPI skeleton, Vite/TS/MapLibre frontend shell, Dockerfile, Fly.io deploy with volume + HTTPS + single-user token auth, `.env.example`, README per global conventions. **Exit:** deployed hello-world map you can log into from your phone.
+uv project + pyproject, FastAPI skeleton, Vite/TS/MapLibre frontend shell, Vercel two-project deploy (API function + static frontend) with Supabase Postgres wired and a keep-alive cron, single-user token auth, `.env.example`, README per global conventions. **Exit:** deployed hello-world map you can log into from your phone, with a proven database connection.
 
 ### Phase 1: Core engine MVP
 Boat presets with polar tables; Open-Meteo client with caching (wind, gusts, pressure, waves); time-stepped simulator with simple heading/waypoint orders; great-circle/rhumb movement with current set; land mask grounding check; track + log persistence; lazy catch-up on check-in. **Exit:** create a passage via API, come back 12 hours later, see a believable track and hourly conditions log. Engine has unit tests against synthetic weather.

@@ -1,6 +1,6 @@
 # CONTRACT: Repo Conventions
 
-Frozen by the Pre-0 spec session (2026-07-14). Implementation sessions follow this; changes require a spec session.
+Frozen by the Pre-0 spec session (2026-07-14); amended by the Pre-0.5 spec session (same date) for the Vercel + Supabase deployment. Implementation sessions follow this; changes require a spec session.
 
 ## Layout
 
@@ -15,11 +15,16 @@ backend/
     weather/            # Open-Meteo client + cache
     gribs/              # NOMADS download + decode (Phase 4)
     geo/                # coordinate math, land mask
-    db/                 # SQLite access, schema migrations
+    db/                 # Postgres access (psycopg); schema lives in supabase/migrations
   tests/                # mirrors package layout: tests/engine/, tests/weather/, ...
+  vercel.json           # backend Vercel project config (maxDuration, cron)
 frontend/
   package.json          # Vite + React + TypeScript
   src/
+  vercel.json           # frontend Vercel project config (proxy rewrites to the API)
+supabase/
+  config.toml           # Supabase CLI local-stack config
+  migrations/           # plain-SQL migrations; the only place schema changes happen
 specs/                  # frozen contracts; do not edit in implementation sessions
 tickets/                # phase-N.md work orders
 reference/              # Steven's sailing reference material; not part of the app
@@ -30,7 +35,8 @@ reference/              # Steven's sailing reference material; not part of the a
 - Python 3.12+. uv for everything: `uv run pytest`, `uv run flake8`, `uv add <dep>`.
 - Type hints on all function signatures. Descriptive names, no abbreviations.
 - flake8 with E501 ignored (config in backend/pyproject.toml or setup.cfg).
-- `engine/` purity: functions in `passage/engine/` never import httpx/requests/sqlite/datetime-now. Time, weather, and randomness enter as parameters. A test may enforce this by import inspection.
+- `engine/` purity: functions in `passage/engine/` never import httpx/requests/psycopg/passage.db/datetime-now. Time, weather, and randomness enter as parameters. A test may enforce this by import inspection.
+- Database: plain SQL via `psycopg` through `passage/db/` only — no ORM, no supabase-py. Schema changes only as new files in `supabase/migrations/`, which must remain valid vanilla Postgres (CI applies them with `psql`). See specs/deployment.md.
 - Pydantic models for all API request/response bodies and engine state objects.
 - Every ticket lands with tests. Full suite (`uv run pytest`) must pass before a ticket is marked done.
 
@@ -49,4 +55,4 @@ reference/              # Steven's sailing reference material; not part of the a
 
 ## Secrets and config
 
-- All runtime config via environment variables prefixed `PASSAGE_`, loaded from `.env` at repo root in development, from Fly secrets in production.
+- All runtime config via environment variables prefixed `PASSAGE_` (one deliberate exception: `CRON_SECRET`, named by Vercel's cron convention), loaded from `.env` at repo root in development, from Vercel project env vars in production and previews.

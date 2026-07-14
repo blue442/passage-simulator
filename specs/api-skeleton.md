@@ -1,10 +1,10 @@
 # CONTRACT: API Skeleton (Phase 0)
 
-Frozen by the Pre-0 spec session (2026-07-14). Defines the app shell that Phase 1+ builds on.
+Frozen by the Pre-0 spec session (2026-07-14); amended by the Pre-0.5 spec session (same date) for the Vercel + Supabase deployment — see specs/deployment.md. Defines the app shell that Phase 1+ builds on.
 
 ## App factory
 
-`passage/main.py` exposes `create_app() -> FastAPI`. Nothing at module import time does I/O. Uvicorn entrypoint: `passage.main:app` where `app = create_app()`.
+`passage/main.py` exposes `create_app() -> FastAPI`. Nothing at module import time does I/O (no settings resolution, no DB connection). Module-level `app = create_app()` is the entrypoint for both local uvicorn (`passage.main:app`) and Vercel's Python runtime.
 
 ## Settings
 
@@ -13,10 +13,14 @@ Frozen by the Pre-0 spec session (2026-07-14). Defines the app shell that Phase 
 | Field | Env var | Default | Meaning |
 |---|---|---|---|
 | `auth_token: str` | `PASSAGE_AUTH_TOKEN` | (required) | Single-user bearer token |
-| `database_path: Path` | `PASSAGE_DATABASE_PATH` | `./data/passage.db` | SQLite location (Fly volume mounts here in prod) |
-| `static_dir: Path \| None` | `PASSAGE_STATIC_DIR` | `None` | Built frontend to serve; None in dev (Vite proxies instead) |
+| `database_url: str` | `PASSAGE_DATABASE_URL` | (required) | Postgres DSN. Production: Supabase pooled (Supavisor) URL. Local: Supabase CLI stack. |
+| `cron_secret: str` | `CRON_SECRET` | (required) | Secret for Vercel cron → keepalive. Note: no `PASSAGE_` prefix — Vercel's cron convention names it `CRON_SECRET`, so it is declared with an explicit `alias`. |
 
 Access via a `get_settings()` dependency (cached), never a module-level singleton, so tests can override.
+
+## Database access
+
+`passage/db/` owns all Postgres access: a connection helper around `psycopg` that (a) reads `settings.database_url`, (b) sets `prepare_threshold=None` (required by Supavisor transaction-mode pooling), (c) opens per-request, short-lived connections. No ORM. Schema changes only via `supabase/migrations/*.sql`. Engine code (`passage/engine/`, Phase 1+) never imports `passage.db`.
 
 ## Auth
 
@@ -24,19 +28,21 @@ Access via a `get_settings()` dependency (cached), never a module-level singleto
 - FastAPI dependency `require_auth` applied to the `/api` router as a whole, not per-endpoint.
 - Unauthenticated/wrong token → 401 with FastAPI-default body `{"detail": "..."}`.
 - `/health` is outside `/api` and unauthenticated.
+- Exception: `/api/cron/keepalive` authenticates against `CRON_SECRET` instead (own router, not under the `require_auth` router).
 
 ## Endpoints (Phase 0 scope)
 
 | Method+Path | Auth | Response |
 |---|---|---|
-| `GET /health` | no | `{"status": "ok", "version": "<package version>"}` |
-| `GET /api/me` | yes | `{"authenticated": true}` (exists so the frontend can validate a token) |
+| `GET /health` | no | `{"status": "ok", "version": "<package version>"}` — must not touch the DB |
+| `GET /api/me` | user token | `{"authenticated": true}` (exists so the frontend can validate a token) |
+| `GET /api/cron/keepalive` | `CRON_SECRET` | `{"database": "ok"}` after a successful `SELECT 1`; 401 on bad/missing secret |
 
-Phase 1 adds `/api/passages...`; those contracts come at the Pre-1 gate.
+Phase 1 adds `/api/passages...`; those contracts come at the Pre-1 gate (and must honor the chunked catch-up constraint in specs/deployment.md).
 
 ## Static serving
 
-When `settings.static_dir` is set, mount the built frontend at `/` (SPA fallback to `index.html` for unknown non-`/api` paths). In development the Vite dev server proxies `/api` and `/health` to `localhost:8000`.
+None. FastAPI serves no static files in any environment: Vercel's CDN serves the built frontend, and in development the Vite dev server proxies `/api` and `/health` to `localhost:8000`.
 
 ## Frontend auth flow
 

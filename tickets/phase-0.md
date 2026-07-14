@@ -78,7 +78,7 @@ Accept: a newcomer can go from clone to local map login using only README
 Verify: manual read-through; confirm every Settings field appears in .env.example
 Note: all three Settings fields (`auth_token`, `database_path`, `static_dir`) are documented in `.env.example`. Spot-checked the backend quickstart commands against the actual environment (`uv sync --all-extras --dev`, `uv run uvicorn passage.main:app --reload`) rather than just eyeballing them.
 
-### [ ] T0.7 First deploy · Complexity: S · USER-ASSISTED
+### [-] T0.7 First deploy · SUPERSEDED by tickets/phase-0v.md (Pre-0.5 spec gate chose Vercel + Supabase)
 Do (with Steven, who holds the accounts):
 - Create GitHub repo (private), push main + dev; confirm CI (.github/workflows/ci.yml) is green
 - `fly launch` (reuse fly.toml), create volume, `fly secrets set PASSAGE_AUTH_TOKEN=<generated>`, `fly deploy`
@@ -86,6 +86,8 @@ Accept: Steven logs in and sees the map on his phone over HTTPS
 Escalate if: n/a (coordination ticket)
 
 ## Blocked
+
+RESOLVED 2026-07-14: Steven chose Vercel + Supabase at the Pre-0.5 spec session (Fable). The refactor is specced in specs/deployment.md and ticketed in tickets/phase-0v.md; the research below is kept for the record.
 
 Paused before T0.7 pending Steven's hosting decision (not a technical blocker — implementation-ready either way).
 
