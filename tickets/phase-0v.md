@@ -81,7 +81,7 @@ Accept:
 Verify: cd backend && uv run pytest -q  (full CI validation lands with T0V.7's repo push)
 Note: went further than the stated verify command — spun up a throwaway `postgres:17` container locally, applied `supabase/migrations/*.sql` with the exact `psql` loop from the workflow, then ran the full test suite against it with `PASSAGE_AUTH_TOKEN=ci-test`/`CRON_SECRET=ci-test`/the container's DSN. All 11 tests passed, so the CI recipe is proven, not just YAML-valid, ahead of T0V.7's real push.
 
-### [ ] T0V.6 README + .env.example final pass · Complexity: S
+### [x] T0V.6 README + .env.example final pass · Complexity: S
 Files: README.md, .env.example
 Contract: global documentation conventions; specs/deployment.md
 Do:
@@ -90,6 +90,7 @@ Do:
 - Confirm every Settings field appears in .env.example with comments (auth_token, database_url, cron_secret)
 Accept: a newcomer goes clone → `supabase start` → backend → frontend → map login using only README
 Verify: manual read-through; grep confirms no Fly/Docker references remain anywhere but git history and ticket notes
+Note: `.env.example` already had all three Settings fields from T0V.2, just re-confirmed. The one surviving "Fly" hit is specs/deployment.md's own opening line noting it supersedes the Fly decision — that's the historical-record carve-out, not a leftover instruction, so left as-is. "Docker" still appears once, legitimately, as a **local dev** prerequisite for the Supabase CLI stack — different meaning from the old Docker-image-deploy references, which are gone.
 
 ### [ ] T0V.7 First deploy · Complexity: M · USER-ASSISTED
 Do (with Steven, who holds all accounts):
