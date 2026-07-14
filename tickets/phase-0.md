@@ -68,7 +68,7 @@ Verify: docker build -t passage-sim . && docker run --rm -d -e PASSAGE_AUTH_TOKE
 Escalate if: uv-in-Docker layering gets fiddly after two attempts (trigger 4)
 Note: layered `uv sync --frozen --no-install-project --no-dev` (deps only, cached before source copy) then a second `uv sync --frozen --no-dev` after `COPY backend/passage` (installs the local project) — standard uv Docker caching pattern, no fiddling needed. uv binary pulled from `ghcr.io/astral-sh/uv:0.11` per astral's documented recipe rather than `pip install uv`. fly.toml sets `min_machines_running = 0` / autostart-autostop deliberately: matches the lazy-catch-up architecture (PLAN.md) where nothing needs to run between check-ins. `app`/`primary_region` in fly.toml are placeholders for `fly launch` in T0.7 to confirm. Verified full container locally: `/health`, `/` (static frontend), `/api/me` both unauthorized and authorized.
 
-### [ ] T0.6 README + .env.example · Complexity: S
+### [x] T0.6 README + .env.example · Complexity: S
 Files: README.md, .env.example
 Contract: global documentation conventions (project objectives, architecture + justifications, structure, deployment)
 Do:
@@ -76,6 +76,7 @@ Do:
 - .env.example: every PASSAGE_ variable with placeholder + comment
 Accept: a newcomer can go from clone to local map login using only README
 Verify: manual read-through; confirm every Settings field appears in .env.example
+Note: all three Settings fields (`auth_token`, `database_path`, `static_dir`) are documented in `.env.example`. Spot-checked the backend quickstart commands against the actual environment (`uv sync --all-extras --dev`, `uv run uvicorn passage.main:app --reload`) rather than just eyeballing them.
 
 ### [ ] T0.7 First deploy · Complexity: S · USER-ASSISTED
 Do (with Steven, who holds the accounts):
