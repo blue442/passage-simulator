@@ -51,7 +51,7 @@ Escalate if: marine past-hours are unavailable for a needed recent window (fall 
 per the contract, and note it) or the recent-history endpoint behaves differently than §1 assumes
 (trigger 2, contract question — consult, then update specs/weather-cache.md via a spec note).
 
-### [ ] T1.2 Geo math · Complexity: S
+### [x] T1.2 Geo math · Complexity: S
 Files: backend/passage/geo/__init__.py, backend/passage/geo/sphere.py, backend/tests/geo/test_geo.py
 Contract: specs/engine-state.md §5; specs/golden-fixtures.md GF-2
 Do:
@@ -62,6 +62,15 @@ Accept:
 - GF-2 table passes (meridian/equator exact; diagonal + antimeridian computed & frozen as literals).
 Verify: cd backend && uv run pytest tests/geo -q
 Escalate if: antimeridian or high-latitude math misbehaves (trigger 3).
+Note: an endpoint-only high-latitude check on `offset` is NOT sufficient — verified numerically
+that a path from 70N on a near-meridional course (bearing 10 deg) sweeping ~6000nm passes through
+~86.6N (a genuine pole-crossing vertex) before landing back down around 9.7N; both endpoints look
+"safe" (<=85 deg) so an endpoint-only guard would silently return garbage. Implemented a proper
+mid-path check using Clairaut's relation (great-circle vertex latitude) in
+`passage/geo/sphere.py::_max_abs_lat_deg_along_path`, raising `HighLatitudeError` (new, local to
+this module) whenever the swept arc's vertex exceeds `HIGH_LATITUDE_LIMIT_DEG=85`. Covered by
+`tests/geo/test_geo.py::TestHighLatitudeEscalation::test_offset_rejects_mid_path_pole_crossing_even_with_innocuous_endpoint`.
+`distance_nm`/`initial_bearing_deg` only check their two given endpoints (no path to sweep).
 
 ### [x] T1.3 Engine state models, orders, constants, tuning · Complexity: M
 Files: backend/passage/engine/__init__.py, backend/passage/engine/state.py,
