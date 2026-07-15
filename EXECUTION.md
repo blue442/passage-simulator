@@ -45,7 +45,7 @@ Contract: specs/weather-cache.md (key = model,run,var,tile,hour; never overwrite
 Do: <2-6 concrete steps>
 Accept:
 - Same query twice hits network once (assert via mock transport)
-- Cache survives process restart (SQLite-backed)
+- Cache survives process restart (Postgres-backed)
 Verify: uv run pytest tests/weather -q
 Escalate if: key schema proves insufficient for determinism (trigger 1/2)
 ```

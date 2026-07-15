@@ -1,0 +1,10 @@
+{
+  "_comment": "Synthetic polar for golden tests only (NOT a boat preset). Referenced by specs/golden-fixtures.md GF-1/GF-3/GF-4. Chosen for clean hand-computed interpolation values.",
+  "tws_values": [6, 10],
+  "twa_values": [45, 90, 135],
+  "boat_speed": [
+    [3.0, 5.0],
+    [4.0, 6.5],
+    [3.5, 5.5]
+  ]
+}
