@@ -14,7 +14,7 @@ Two Vercel projects deployed from one GitHub repo via Git integration (push to `
 The browser only ever talks to the frontend domain. `frontend/vercel.json` rewrites `/api/:path*` and `/health` to the backend project's production URL, so the origin is single and the bearer-token flow needs no CORS handling. The backend's own domain is an implementation detail (it still serves requests directly; nothing must break if hit directly).
 
 - Backend Python runtime installs from `backend/pyproject.toml` + `uv.lock` (Vercel's installer uses uv; commit the lockfile, it is authoritative). Python version comes from `backend/.python-version` (3.12).
-- Entrypoint: `[tool.vercel] entrypoint = "passage/main.py"` in `backend/pyproject.toml`, exposing the module-level `app`.
+- Entrypoint: `[tool.vercel] entrypoint = "passage.main:app"` in `backend/pyproject.toml` — Vercel requires `module:object` format (dotted module path, not a file path), corrected at T0V.7 after a real deploy rejected the file-path form.
 - `backend/vercel.json` sets `functions` `maxDuration` = 60 and the keep-alive cron (below).
 - `backend/.vercelignore` excludes `tests/`.
 
