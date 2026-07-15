@@ -92,7 +92,7 @@ Accept: a newcomer goes clone → `supabase start` → backend → frontend → 
 Verify: manual read-through; grep confirms no Fly/Docker references remain anywhere but git history and ticket notes
 Note: `.env.example` already had all three Settings fields from T0V.2, just re-confirmed. The one surviving "Fly" hit is specs/deployment.md's own opening line noting it supersedes the Fly decision — that's the historical-record carve-out, not a leftover instruction, so left as-is. "Docker" still appears once, legitimately, as a **local dev** prerequisite for the Supabase CLI stack — different meaning from the old Docker-image-deploy references, which are gone.
 
-### [ ] T0V.7 First deploy · Complexity: M · USER-ASSISTED
+### [~] T0V.7 First deploy · Complexity: M · USER-ASSISTED (in progress)
 Do (with Steven, who holds all accounts):
 - GitHub: create private repo under Steven's PERSONAL account (Hobby plan cannot link org repos), push main + dev, confirm CI green
 - Supabase: create project (region near ord), `supabase link`, `supabase db push`; copy the POOLED connection string (Supavisor, port 6543 — not the direct 5432 one)
@@ -101,3 +101,7 @@ Do (with Steven, who holds all accounts):
 - Verify: `curl https://<backend-domain>/health` works; keepalive returns 200 with the secret and 401 without; cron shows a successful run in Vercel logs within a day
 Accept: Steven logs in and sees the map on his phone over HTTPS at the frontend domain
 Escalate if: FastAPI preset/entrypoint or uv install behaves differently than specs/deployment.md assumes — that's a contract update, bring it back to a spec session (trigger 2)
+
+Progress: repo created at github.com/blue442/passage-simulator (Steven's personal account). `main` fast-forwarded to match `dev` (was stuck at the Pre-0 commit — Vercel deploys `main` to production, so it needed everything). Both branches pushed.
+
+Bug found by real CI (not caught locally): `tests/test_cron.py` hardcoded the local Supabase DSN instead of reading `PASSAGE_DATABASE_URL` like `test_db.py` does — passed locally only by coincidence, because the local Supabase stack happened to still be running on port 54322 whenever the suite ran. GitHub's clean runner had nothing on that port and correctly failed with `Connection refused`. Fixed to read the env var with the same fallback pattern as `test_db.py`; reproduced and verified the fix by stopping the local stack entirely and running the suite against only a throwaway container on a different port — 11 passed, proving the env var is actually respected and not passing by accident again. Fix committed directly to `dev` (not a feature branch — it's a post-merge correction of already-shipped test code, not new ticket work).

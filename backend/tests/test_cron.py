@@ -1,3 +1,5 @@
+import os
+
 from fastapi.testclient import TestClient
 
 from passage.config import Settings, get_settings
@@ -10,7 +12,7 @@ def _client() -> TestClient:
     app = create_app()
     app.dependency_overrides[get_settings] = lambda: Settings(
         auth_token="user-token",
-        database_url=LOCAL_SUPABASE_DSN,
+        database_url=os.environ.get("PASSAGE_DATABASE_URL", LOCAL_SUPABASE_DSN),
         cron_secret="correct-cron-secret",
     )
     return TestClient(app)
