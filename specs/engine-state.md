@@ -44,7 +44,7 @@ from datetime import timedelta
 STEP: timedelta = timedelta(minutes=10)   # integration step; also the track-point cadence
 TILE_RESOLUTION_DEG: float = 0.25          # weather tile snapping grid (see specs/weather-cache.md)
 NM_PER_DEGREE_LAT: float = 60.0
-EARTH_RADIUS_NM: float = 3440.065          # for great-circle distance/bearing (haversine)
+EARTH_RADIUS_NM: float = 3437.7468         # = 60*180/pi, so 1° = 60 nm exactly (matches NM_PER_DEGREE_LAT and §1); haversine dist/bearing
 CONDITIONS_LOG_EVERY_STEPS: int = 6        # one "conditions" log entry per hour (6 × 10 min)
 ```
 
@@ -224,7 +224,11 @@ floating-point results and therefore determinism):
      waypoints[active_waypoint_index]` (or `destination` if waypoints empty).
    - HEADING mode: `desired = orders.fixed_heading_deg`.
 2. **Steering clamp (no-go zones).** Compute the TWA the desired bearing implies:
-   `twa_desired = angular_diff(desired, reciprocal(ws.wind_dir_deg))` folded to `[0,180]`.
+   `twa_desired = angular_diff(desired, ws.wind_dir_deg)` folded to `[0,180]`.
+   (TWA is the angle between the heading and the wind **source** = `wind_dir_deg` (FROM), per §1:
+   0 = dead upwind, 180 = dead downwind. Do **not** use `reciprocal(wind_dir_deg)` here — that
+   inverts upwind and downwind. Note the downwind branch below still uses `reciprocal(wind_from)`
+   for its *feasible headings*, which is correct.)
    - If `UPWIND_LIMIT_DEG <= twa_desired <= DOWNWIND_LIMIT_DEG`: `heading = desired`.
    - If `twa_desired < UPWIND_LIMIT_DEG` (pinching): sail close-hauled. The two feasible headings
      are `wind_from ± UPWIND_LIMIT_DEG` (where `wind_from = ws.wind_dir_deg`). Choose the one with
@@ -318,11 +322,18 @@ replay invariant (golden fixture GF-6). If it ever fails, that is an automatic e
 
 Phase-1 motion is fully deterministic (no random draws). But so that Phase 5 events cannot break
 chunk-invariance, freeze the rule now: **any stochastic draw at step index `k` must derive its
-randomness from a substream keyed by `(seed, k, stream_name)`** — e.g. `Random(hash((seed, k,
-stream_name)) & 0xFFFFFFFF)` or a PCG substream — never from a single running generator advanced
+randomness from a substream keyed by `(seed, k, stream_name)`** — e.g.
+`Random(int.from_bytes(hashlib.sha256(f"{seed}|{k}|{stream_name}".encode()).digest()[:8], "big"))`
+or a PCG substream — never from a single running generator advanced
 across the whole passage. A generator that resets or advances differently per chunk would make the
 same passage produce different events depending on how catch-up was chunked. `passage/engine/rng.py`
 provides `rng_for_step(seed: int, step_index: int, stream: str) -> random.Random`.
+
+**Do NOT key the substream with the builtin `hash()` on strings/tuples.** Python salts string/bytes
+hashing per process (`PYTHONHASHSEED`), so `hash((seed, k, stream_name))` yields different values in
+different processes and would make replays (Phase 7) and cross-invocation catch-up non-deterministic.
+Use a stable digest (as above) or map `stream_name` to a fixed integer. A Phase-1 test should assert
+`rng_for_step` returns identical draws in a fresh subprocess.
 
 ---
 

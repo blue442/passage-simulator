@@ -21,6 +21,12 @@ Postgres at `postgresql://postgres:postgres@127.0.0.1:54322/postgres`). Golden f
 
 Test layout mirrors the package: `tests/engine/`, `tests/geo/`, `tests/weather/`, `tests/api/`.
 
+**Dependency note (ordering fix from the Pre-1 adversarial review):** the numbering is *not* a strict
+topological order. `T1.3` (models) defines `GeoPoint`, which `T1.2` (geo) imports in its signatures,
+and `PolarTable` (in `T1.4`) is referenced by `BoatPreset` in `T1.3`'s `state.py`. Do **T1.3 before
+T1.2 and T1.4** (or, if kept in number order, first land the tiny `GeoPoint`/`PolarTable` model
+definitions so the imports resolve). T1.1 (client) is independent and can go anytime before T1.10.
+
 ---
 
 ### [ ] T1.1 Open-Meteo client + availability spike · Complexity: M
@@ -57,7 +63,7 @@ Accept:
 Verify: cd backend && uv run pytest tests/geo -q
 Escalate if: antimeridian or high-latitude math misbehaves (trigger 3).
 
-### [ ] T1.3 Engine state models, orders, constants, tuning · Complexity: M
+### [x] T1.3 Engine state models, orders, constants, tuning · Complexity: M
 Files: backend/passage/engine/__init__.py, backend/passage/engine/state.py,
   backend/passage/engine/orders.py, backend/passage/engine/constants.py,
   backend/passage/engine/tuning.py, backend/tests/engine/test_models.py
@@ -71,6 +77,14 @@ Do:
 Accept:
 - Models round-trip (construct + `model_dump`/`model_validate`); validation rejects the bad cases.
 Verify: cd backend && uv run pytest tests/engine/test_models.py -q
+Note: real import cycle between state.py (PassageParams needs Orders) and orders.py (Orders
+needs GeoPoint) — resolved via `from __future__ import annotations` + a TYPE_CHECKING-only
+import of Orders in state.py, with `PassageParams.model_rebuild(_types_namespace={"Orders":
+Orders})` called once in passage/engine/__init__.py after both modules load. Also landed
+`PolarTable` (model only, no `boat_speed()` function yet) in polars.py ahead of T1.4, since
+BoatPreset needs it directly (no cycle there) — T1.4 should extend polars.py, not recreate it.
+Added `pydantic` as an explicit pyproject dependency (was previously only transitive via
+pydantic-settings).
 
 ### [ ] T1.4 Polars + boat presets · Complexity: M
 Files: backend/passage/engine/polars.py, backend/passage/engine/boats.py, backend/tests/engine/test_polars.py
@@ -201,6 +215,12 @@ Accept:
 - Create → checkin loop drives the boat; `caught_up` flips true when `end_state.time` reaches the
   step-aligned target; terminal status stops it. Tests may inject a fake `now` and a stub/mock
   weather client (no live network in CI).
+- **Chunk-invariance THROUGH the DB (not just in-memory GF-6):** with the same stub weather, catch a
+  passage up in one big chunk vs many small chunks (e.g. `max_catchup_hours_per_request` = large vs
+  = STEP) and assert the persisted track points + end state are bit-identical. This is the test GF-6
+  cannot cover, because it exercises the `VesselState` round-trip through `double precision` columns.
+  If it diverges, the float round-trip is lossy — use psycopg binary params or store enough precision;
+  do NOT weaken to `approx` (trigger 1).
 - 401s still enforced (endpoints under the authed router).
 Verify: cd backend && uv run pytest tests/api -q   (needs local Supabase up)
 Escalate if: chunked vs single-shot catch-up produce different tracks in an integration test

@@ -87,9 +87,13 @@ create table weather_cache (
 Catch-up for a chunk `[t0, t1]` (both step-aligned) proceeds:
 
 1. **Bounding box.** Compute a lat/lon box that generously covers where the boat can be during the
-   chunk: start from `start_state.position`, pad by `max_hull_speed_kn * (t1 - t0)` converted to
-   degrees, plus one tile of margin on each side. (A chunk is ≤ `max_catchup_hours_per_request`, so
-   the box is small.) Enumerate all tile indices in the box.
+   chunk: start from `start_state.position`, pad by `v_max * (t1 - t0)` converted to degrees, plus one
+   tile of margin on each side, where `v_max` is an upper bound on **SOG**, not hull speed — use
+   `max_hull_speed_kn` **plus** the max plausible current (0 for Phase-1 real data, but nonzero once
+   Phase 6 currents arrive). Convert nm→degrees **per axis**: `dlat_deg = nm/60`,
+   `dlon_deg = nm/(60·cos(lat))` (longitude degrees shrink with latitude; using `nm/60` for longitude
+   under-covers the box at mid/high latitude and the boat can escape it). (A chunk is ≤
+   `max_catchup_hours_per_request`, so the box is small.) Enumerate all tile indices in the box.
 2. **Hours.** Enumerate every UTC hour spanning `[t0 - 1h, t1 + 1h]` (±1h so temporal interpolation
    at the ends has both bracketing hours).
 3. **Cache-first fetch.** For each `(source, tile, hour)` not already present for this passage, batch
@@ -116,9 +120,14 @@ deterministic. Golden fixture GF-9 pins the trilinear math to hand-computed valu
 
 ## 5. Pruning (Supabase 500 MB budget)
 
-- A single passage's cache is bounded and small: only tiles near the actual track × hours sailed get
-  fetched (a 10-day passage ≈ a few thousand rows × tiny jsonb ≈ single-digit MB). For a single user
-  this fits the free tier comfortably; pruning is a safety valve, not a hot path.
+- A single passage's cache is bounded but not tiny. Rows are per `(source, tile, hour)` and the
+  prefetch box enumerates *all* tiles in the box × *all* hours in the chunk, not just the tiles the
+  track touches. A 10-day passage is closer to **~30–50k rows** (≈ box-tiles × hours × 2 sources),
+  which at small jsonb + PK/index overhead is **~10–20 MB per passage**, not "single-digit MB". That
+  still fits the 500 MB free tier comfortably for a single user — but note the policy below **keeps
+  arrived passages** (for the Phase-7 debrief), so retained passages accumulate: on the order of a few
+  dozen completed 10-day passages would approach the budget. Pruning is a safety valve, not a hot
+  path, but a manual "archive/prune old passages" affordance will be wanted before the count gets high.
 - **Mechanism (frozen):** `passage/db/…` provides `prune_passage_weather(conn, passage_id)` =
   `delete from weather_cache where passage_id = %s`. Deleting a passage row cascades the same way
   (`on delete cascade`).
@@ -135,3 +144,14 @@ deterministic. Golden fixture GF-9 pins the trilinear math to hand-computed valu
 - Angle interpolation via vectors ⇒ no wrap discontinuity.
 - Sampler is pure over in-memory rows ⇒ no clock/network inside stepping.
 - Per-passage scoping ⇒ a replay reads exactly the rows the original run wrote.
+
+**Scope of the guarantee (be honest about it).** "Never overwrite" makes **replay** fully
+deterministic (a re-run reads only already-cached rows). It does **not** by itself make the *first*
+catch-up chunk-invariant if the chunks are fetched at different real times: Open-Meteo revises recent
+hours, so a `(tile, hour)` first fetched during a later chunk can hold a *revised* value that a single
+big-chunk fetch (done earlier) would not have seen. In practice a client's catch-up requests run
+back-to-back (seconds apart), so the window is tiny — but it is not provably zero. To close it, the
+orchestration SHOULD, on the first catch-up of a passage, fetch the full hour span the whole catch-up
+will need up front (fetching is a handful of cheap requests; only the *stepping* is chunked for the
+Vercel timeout). GF-6 does **not** cover this (it uses an analytic provider, no cache/network); the
+DB-round-trip chunk-invariance test lives in T1.10.

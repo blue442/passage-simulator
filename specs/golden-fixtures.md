@@ -51,7 +51,12 @@ Exact equality (these are exact in binary-friendly fractions; allow `abs < 1e-9`
 | (0,0) | (0,1) | **60.0** (±1e-3) | **90.0** |
 | (0,0) | (−1,0) | **60.0** (±1e-6) | **180.0** |
 | (0,0) | (0,−1) | **60.0** (±1e-3) | **270.0** |
-| (0,0) | (1,1) | **≈84.9** *(compute & freeze, ±1e-3)* | **≈45.0** *(44.996; compute & freeze, ±1e-2)* |
+| (0,0) | (1,1) | **≈84.851** *(compute & freeze, ±1e-3)* | **≈45.0** *(44.996; compute & freeze, ±1e-2)* |
+
+The meridian/equator rows are exactly `60.0` **only** because `EARTH_RADIUS_NM = 3437.7468`
+(= 60·180/π), which is what makes "1° = 60 nm exactly" (§1) hold. If that constant is ever changed
+back to a geodetic value (e.g. 3440.065), these rows become ≈60.04 and the diagonal ≈84.91 — the
+whole table must be recomputed. Diagonal ≈84.851 is with the frozen 3437.7468.
 
 Antimeridian: `offset((0,179.9), 90, 60)` must land near `lon ≈ −179.1` (wrapped), lat ≈ 0 — assert
 `lon` is normalized into `[-180,180)` and no exception. *(compute & freeze exact lon)*
