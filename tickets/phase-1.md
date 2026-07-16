@@ -95,7 +95,7 @@ BoatPreset needs it directly (no cycle there) — T1.4 should extend polars.py, 
 Added `pydantic` as an explicit pyproject dependency (was previously only transitive via
 pydantic-settings).
 
-### [ ] T1.4 Polars + boat presets · Complexity: M
+### [x] T1.4 Polars + boat presets · Complexity: M
 Files: backend/passage/engine/polars.py, backend/passage/engine/boats.py, backend/tests/engine/test_polars.py
 Contract: specs/engine-state.md §4; specs/golden-fixtures.md GF-1
 Do:
@@ -111,6 +111,11 @@ Accept:
 Verify: cd backend && uv run pytest tests/engine/test_polars.py -q
 Escalate if: you feel the need to tune polar values to make something "look right" (trigger 5 — leave
 placeholders, that's a spec-session job with Steven).
+Note: `boat_speed()` added to the `polars.py` T1.3 already started (bisect-based axis clamp/interp
+helper `_axis_interp`, shared by both TWS and TWA). All 7 GF-1 rows pass exactly. Preset polars
+(cruiser35/perf45/cat40) are hand-built placeholders shaped like real polars (rise from close-hauled,
+peak around TWA 110-120, taper to dead run; wind-speed factor saturating toward each boat's
+max_hull_speed_kn) — plausible-looking but explicitly NOT tuned, per the escalate-if above.
 
 ### [ ] T1.5 Motion step · Complexity: M
 Files: backend/passage/engine/motion.py, backend/tests/engine/test_motion.py
