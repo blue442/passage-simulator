@@ -1,6 +1,11 @@
 # CONTRACT — see specs/weather-cache.md §2-§3.
 #
 # This module does I/O (psycopg) — explicitly NOT part of passage.engine, which must stay pure.
+#
+# Cursors use binary=True: psycopg's default TEXT result format for `double precision` columns
+# (latitude/longitude here) is lossy by one ULP on the way out. See passage/db/passages.py's
+# module docstring for the full story. (The jsonb `variables` column is unaffected -- verified
+# JSON-encoded floats round-trip exactly regardless of cursor format.)
 from datetime import datetime
 from uuid import UUID
 
@@ -40,7 +45,7 @@ def insert_rows(
     variables (e.g. the dict `client.fetch()` returns for this tile). Never overwrites an
     existing (passage, source, tile, hour) row — ON CONFLICT DO NOTHING is what makes even a
     still-revising recent hour deterministic across replays (specs/weather-cache.md §3)."""
-    with conn.cursor() as cur:
+    with conn.cursor(binary=True) as cur:
         for hour_utc, variables in rows.items():
             cur.execute(
                 """
@@ -70,7 +75,7 @@ def read_rows(
     lat_lo, lat_hi = lat_idx_range
     lon_lo, lon_hi = lon_idx_range
     hour_lo, hour_hi = hour_range
-    with conn.cursor() as cur:
+    with conn.cursor(binary=True) as cur:
         cur.execute(
             """
             select source, lat_idx, lon_idx, hour_utc, latitude, longitude, variables
@@ -89,6 +94,6 @@ def read_rows(
 def prune_passage_weather(conn: psycopg.Connection, passage_id: UUID) -> None:
     """Delete all cached weather for a passage (specs/weather-cache.md §5). Called on passage
     delete, not automatically on arrival — the Phase-7 debrief/replay needs the cache."""
-    with conn.cursor() as cur:
+    with conn.cursor(binary=True) as cur:
         cur.execute("delete from weather_cache where passage_id = %s", (passage_id,))
     conn.commit()

@@ -229,7 +229,7 @@ missing" check alone would miss this partial-coverage case. test_cache.py insert
 `passage` row per test (T1.8's repository doesn't exist yet) and relies on cascade delete for
 cleanup.
 
-### [ ] T1.8 Passage/track/log repository · Complexity: M
+### [x] T1.8 Passage/track/log repository · Complexity: M
 Files: backend/passage/db/passages.py, backend/passage/db/track.py, backend/tests/db/test_repository.py
 Contract: specs/engine-state.md §3 (VesselState is the authoritative resume state on the passage row);
   migration 20260715120000
@@ -242,6 +242,17 @@ Accept:
 - Round-trip a passage; append two catch-up batches and confirm seqs are contiguous and the passage
   row's current state equals the last track point.
 Verify: cd backend && uv run pytest tests/db -q   (needs local Supabase up)
+Note: hit exactly the float round-trip risk flagged in the Pre-1 review's S1 finding (T1.10's
+"DB-round-trip chunk-invariance" note) — confirmed empirically: reading a `double precision`
+column back through a default (TEXT-format) psycopg cursor loses precision by ~1 ULP
+(e.g. 0.07833333333333332 -> 0.0783333333333333), because Postgres's text output for float8
+doesn't always emit enough significant digits to round-trip exactly. The WRITE side is fine
+(Python's `repr(float)` is already round-trip-safe); only reads were lossy. Fix: pass
+`binary=True` to every cursor in passages.py/track.py (verified: also fixes UUID/timestamptz/jsonb
+round-trips, no regressions). Applied the same fix retroactively to weather/cache.py (T1.7,
+already committed) since `weather_cache.latitude`/`longitude` are the same column type and hit the
+same bug — jsonb-encoded floats (the `variables` column) were verified NOT affected regardless of
+cursor format. This directly de-risks the DB-round-trip chunk-invariance test T1.10 needs to add.
 
 ### [ ] T1.9 Land mask (grounding) · Complexity: M
 Files: backend/passage/geo/land.py, backend/tests/geo/test_land.py
