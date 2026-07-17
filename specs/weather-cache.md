@@ -114,7 +114,7 @@ Catch-up for a chunk `[t0, t1]` (both step-aligned) proceeds:
   raises rather than guessing. (Escalate if this recurs — trigger 3, interpolation/box boundary.)
 
 The sampler is a pure function of the in-memory rows: identical rows ⇒ identical samples ⇒
-deterministic. Golden fixture GF-9 pins the trilinear math to hand-computed values.
+deterministic. Golden fixture GF-8 pins the trilinear math to hand-computed values.
 
 ---
 

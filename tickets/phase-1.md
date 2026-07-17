@@ -200,7 +200,7 @@ across chunk variants) and VesselState has no field to carry a chunk-invariant h
 without a contract change — fixing this properly would mean adding a field to VesselState, which
 is out of this ticket's scope. Flagging for Pre-2 gate awareness, not escalating now.
 
-### [ ] T1.7 Weather cache access + pure sampler · Complexity: M
+### [x] T1.7 Weather cache access + pure sampler · Complexity: M
 Files: backend/passage/weather/cache.py, backend/passage/weather/sampler.py,
   backend/tests/weather/test_cache.py, backend/tests/weather/test_sampler.py
 Contract: specs/weather-cache.md §2–§4; specs/golden-fixtures.md GF-8
@@ -218,6 +218,16 @@ Accept:
 - Cache never-overwrite: inserting a changed value for an existing key leaves the original (test).
 Verify: cd backend && uv run pytest tests/weather -q -m "not live"   (needs local Supabase up)
 Escalate if: interpolation artifacts at tile/hour boundaries (trigger 3).
+Note: fixed a stale cross-reference in specs/weather-cache.md §4 ("Golden fixture GF-9" ->
+"GF-8" — golden-fixtures.md's actual section for the sampler trilinear test is GF-8; trivial
+doc-only fix, not a substantive change). GF-8's exact center value (18.0) and angle-wrap
+(350deg/10deg -> ~0/360, not 180) both pass. Sampler requires ALL 5 WeatherSample fields present
+at all 4 spatial corners x 2 hours to succeed — added a test proving a *partial* gap (e.g.
+om-marine's wave_height_m never fetched for a tile/hour that DOES have om-weather data) still
+raises MissingWeatherDataError, not just a wholly-absent tile/hour; a naive per-tile "if key
+missing" check alone would miss this partial-coverage case. test_cache.py inserts a minimal raw
+`passage` row per test (T1.8's repository doesn't exist yet) and relies on cascade delete for
+cleanup.
 
 ### [ ] T1.8 Passage/track/log repository · Complexity: M
 Files: backend/passage/db/passages.py, backend/passage/db/track.py, backend/tests/db/test_repository.py
