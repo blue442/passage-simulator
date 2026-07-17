@@ -117,7 +117,7 @@ helper `_axis_interp`, shared by both TWS and TWA). All 7 GF-1 rows pass exactly
 peak around TWA 110-120, taper to dead run; wind-speed factor saturating toward each boat's
 max_hull_speed_kn) — plausible-looking but explicitly NOT tuned, per the escalate-if above.
 
-### [ ] T1.5 Motion step · Complexity: M
+### [x] T1.5 Motion step · Complexity: M
 Files: backend/passage/engine/motion.py, backend/tests/engine/test_motion.py
 Contract: specs/engine-state.md §6 (steering + integration, frozen order of operations);
   specs/golden-fixtures.md GF-3, GF-4
@@ -132,6 +132,17 @@ Accept:
   side with positive VMG toward the mark (hand-check one case).
 Verify: cd backend && uv run pytest tests/engine/test_motion.py -q
 Escalate if: tack selection oscillates near a layline (trigger 3 — do not add ad-hoc hysteresis).
+Escalation consult (trigger 3/5, resolved): the frozen tie-break wording ("choose the starboard
+option, heading obtained by turning clockwise from the wind" = `wind_from + UPWIND_LIMIT_DEG`) was
+backwards — verified independently (relative-bearing derivation + classic beating-diagram check)
+that `wind_from + UPWIND_LIMIT_DEG` is actually PORT tack, and `wind_from - UPWIND_LIMIT_DEG` is
+starboard. Consulted an opus subagent to re-derive from scratch before touching the frozen spec a
+second time; it independently confirmed the same result and derived the matching downwind-branch
+formula (`reciprocal(wind_from) + (180 - DOWNWIND_LIMIT_DEG)` = starboard), noting both branches
+unify to `wind_from - TWA (mod 360) = starboard`. specs/engine-state.md §6 tie-break bullet
+corrected accordingly (2026-07-16). No golden fixture needed regenerating — GF-3/GF-4 are beam
+reaches (TWA=90) and never exercise the tie-break; `test_motion.py::TestSteeringNoGoZones` adds
+direct coverage of both the upwind and downwind tie-break cases against the corrected rule.
 
 ### [ ] T1.6 Segment simulation, RNG rule, engine purity · Complexity: M
 Files: backend/passage/engine/simulate.py, backend/passage/engine/rng.py,

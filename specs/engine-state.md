@@ -235,8 +235,20 @@ floating-point results and therefore determinism):
      the **smaller angular distance to `desired`** (the favored tack). `heading =` that.
    - If `twa_desired > DOWNWIND_LIMIT_DEG` (dead downwind): the two feasible headings are
      `reciprocal(wind_from) ± (180 - DOWNWIND_LIMIT_DEG)`. Choose the one closer to `desired`.
-   - Tie-break (exactly equal angular distance): choose the **starboard** option (heading obtained by
-     turning clockwise from the wind), for reproducibility. This tie-break is frozen for determinism.
+   - Tie-break (exactly equal angular distance): choose the **starboard-tack** heading (wind on the
+     starboard side), for reproducibility. Starboard tack is always `wind_from - TWA` (mod 360) — the
+     *counter-clockwise* side of the wind source (compass 0 = N, clockwise-positive, `wind_from` =
+     direction the wind blows FROM; verified by relative-bearing derivation and against the classic
+     beating-to-windward diagram: wind from due north, starboard tack points NW, i.e.
+     `wind_from - close_hauled_angle`). Concretely per branch:
+     - upwind branch: starboard = `wind_from - UPWIND_LIMIT_DEG` (port = `wind_from + UPWIND_LIMIT_DEG`).
+     - downwind branch: starboard = `reciprocal(wind_from) + (180 - DOWNWIND_LIMIT_DEG)` (port =
+       `reciprocal(wind_from) - (180 - DOWNWIND_LIMIT_DEG)`); this is algebraically the same rule,
+       since `reciprocal(wind_from) + (180 - DOWNWIND_LIMIT_DEG) ≡ wind_from - DOWNWIND_LIMIT_DEG`
+       (mod 360).
+     This tie-break is frozen for determinism. (Pre-1 gate review note: the previous wording —
+     "turning clockwise from the wind" = `wind_from + UPWIND_LIMIT_DEG` — was backwards; that
+     arithmetic is port tack, not starboard. Fixed 2026-07-16, confirmed by independent derivation.)
    - `UPWIND_LIMIT_DEG`, `DOWNWIND_LIMIT_DEG` are NEEDS-JUDGMENT (section 8). Tack/gybe selection is
      recomputed each step; because the favored side only flips when `desired` crosses the wind axis,
      this yields natural tacking without per-step jitter. If oscillation is observed near a layline,
