@@ -144,7 +144,7 @@ corrected accordingly (2026-07-16). No golden fixture needed regenerating — GF
 reaches (TWA=90) and never exercise the tie-break; `test_motion.py::TestSteeringNoGoZones` adds
 direct coverage of both the upwind and downwind tie-break cases against the corrected rule.
 
-### [ ] T1.6 Segment simulation, RNG rule, engine purity · Complexity: M
+### [x] T1.6 Segment simulation, RNG rule, engine purity · Complexity: M
 Files: backend/passage/engine/simulate.py, backend/passage/engine/rng.py,
   backend/tests/engine/test_simulate.py, backend/tests/engine/test_determinism.py,
   backend/tests/engine/test_purity.py
@@ -163,6 +163,22 @@ Accept:
 - Purity test passes.
 Verify: cd backend && uv run pytest tests/engine -q
 Escalate if: GF-6 ever fails (trigger 1 — STOP, do not weaken `==`).
+Note: GF-6 passed bit-identical on the first run (1-chunk == 4-chunk == 144-chunk, both
+TrackPoints and end_state) — no escalation needed. `simulate_segment`'s `_active_target` helper
+special-cases HEADING mode to always check arrival against `destination` (never
+`orders.waypoints`), since orders.md says HEADING mode ignores waypoints entirely; using
+`orders.waypoints` unconditionally would have been wrong whenever a HEADING-mode passage happened
+to carry a stale/irrelevant waypoints list.
+Known limitation (not a determinism risk, flagged for visibility): the "conditions" log's
+`distance_run_nm` (data payload, "distance run this hour") is accumulated locally within a single
+`simulate_segment` call and resets to 0 at the start of each call. Real catch-up chunks are only
+step-aligned, not hour-aligned (`sim_target` depends on wall-clock "now" at check-in), so in
+practice almost every check-in's first post-boundary conditions entry will under-report the true
+hourly distance by the portion simulated in the previous call. This does NOT affect
+TrackPoint/end_state (GF-6 unaffected, verified: GF-6 intentionally does not compare log_entries
+across chunk variants) and VesselState has no field to carry a chunk-invariant hourly accumulator
+without a contract change — fixing this properly would mean adding a field to VesselState, which
+is out of this ticket's scope. Flagging for Pre-2 gate awareness, not escalating now.
 
 ### [ ] T1.7 Weather cache access + pure sampler · Complexity: M
 Files: backend/passage/weather/cache.py, backend/passage/weather/sampler.py,
@@ -288,3 +304,10 @@ Escalate if: the full-stack replay differs from the first run (trigger 1).
   demo via curl and drive tests); Pre-2 formalizes the payloads the frontend consumes and the
   component map. Order-change *history* is not stored yet (only current orders on the passage row) —
   Phase 7 replay across order changes will need it; flagged now.
+- **T1.6 finding, carried forward:** the hourly "conditions" log's `distance_run_nm` under-reports
+  after a catch-up chunk boundary splits an hour (see T1.6's note above) because `VesselState` has
+  no field to carry a chunk-invariant "distance since last conditions log" across calls. Not a
+  determinism risk (track/end_state unaffected), just a narrative-log imprecision that's actually
+  the common case in production (check-ins land at arbitrary times). If it matters enough to fix
+  properly, the fix is a `VesselState` contract change (e.g. an added field) — a spec-session
+  decision, not an implementation-session one.
