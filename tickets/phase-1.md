@@ -29,7 +29,7 @@ definitions so the imports resolve). T1.1 (client) is independent and can go any
 
 ---
 
-### [ ] T1.1 Open-Meteo client + availability spike · Complexity: M
+### [x] T1.1 Open-Meteo client + availability spike · Complexity: M
 Files: backend/passage/weather/client.py, backend/tests/weather/test_client.py
 Contract: specs/weather-cache.md §1 (sources, variables, unit conversion, spike-first + ERA5 fallback)
 Do:
@@ -50,6 +50,26 @@ Verify: cd backend && uv run pytest tests/weather/test_client.py -q -m "not live
 Escalate if: marine past-hours are unavailable for a needed recent window (fall back to ERA5 archive
 per the contract, and note it) or the recent-history endpoint behaves differently than §1 assumes
 (trigger 2, contract question — consult, then update specs/weather-cache.md via a spec note).
+
+**Live spike results (2026-07-17, run against the real API before writing any client code):**
+- Both `api.open-meteo.com/v1/forecast` (wind/pressure) and `marine-api.open-meteo.com/v1/marine`
+  (wave height) returned complete, null-free hourly data for past hours all the way up to the
+  current hour, at a mid-ocean point (32N/64W) AND a coastal point (Boston Harbor mouth, 42.35N/
+  70.9W) — no gaps found at either. `past_days`/`start_date`+`end_date` both work and go well
+  beyond 92 days on both endpoints (Phase 1 only ever needs ~10 days). **No ERA5 archive fallback
+  needed; no escalation — the contract's §1 assumptions hold up against the live API.**
+- `windspeed_unit=kn` IS supported server-side (confirmed by the hourly_units label AND by cross-
+  checking against the same hour's m/s values times 1.94384 — agreed to within the API's own
+  rounding). This means the client does **zero manual unit conversion for wind** — it just passes
+  `windspeed_unit=kn` and trusts the response. This simplifies the ticket's original CI-test framing
+  ("assert parsing + unit conversion (m/s or km/h → kn) are correct") — there is no conversion *math*
+  to test, only that the right query param is sent and the pre-converted values are mapped to the
+  correct engine field names. Pressure (hPa) and wave_height (m) already match engine units with no
+  conversion needed either.
+- Added `pyproject.toml` `[tool.pytest.ini_options]` with a registered `live` marker and
+  `addopts = "-m 'not live'"` so a bare `pytest -q` (what CI runs) safely excludes the live spike
+  test without needing a CI YAML change; run it explicitly with `-m live` to override. Moved `httpx`
+  from dev-only to a main dependency since `client.py` uses it in production code, not just tests.
 
 ### [x] T1.2 Geo math · Complexity: S
 Files: backend/passage/geo/__init__.py, backend/passage/geo/sphere.py, backend/tests/geo/test_geo.py
